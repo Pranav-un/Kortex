@@ -99,6 +99,7 @@ public class DocumentController {
         documentService.deleteDocument(documentId, userDetails.getId());
 
         return ResponseEntity.noContent().build();
+    }
 
     /**
      * Regenerate summary for a document.
@@ -129,6 +130,5 @@ public class DocumentController {
         }
 
         return ResponseEntity.ok(Map.of("summary", summary));
-    }
     }
 }

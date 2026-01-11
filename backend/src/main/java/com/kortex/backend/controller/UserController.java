@@ -7,6 +7,7 @@ import com.kortex.backend.security.UserDetailsImpl;
 import com.kortex.backend.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -44,7 +45,7 @@ public class UserController {
      * @param request update profile request
      * @return updated user profile
      */
-    @PutMapping("/me")
+    @PutMapping(value = "/me", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserProfileResponse> updateCurrentUserProfile(
             Authentication authentication,
@@ -61,7 +62,7 @@ public class UserController {
      * @param request update password request
      * @return no content response
      */
-    @PutMapping("/me/password")
+    @PutMapping(value = "/me/password", consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> updateCurrentUserPassword(
             Authentication authentication,

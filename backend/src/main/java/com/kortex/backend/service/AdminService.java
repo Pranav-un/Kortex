@@ -11,7 +11,7 @@ import com.kortex.backend.model.User;
 import com.kortex.backend.repository.DocumentChunkRepository;
 import com.kortex.backend.repository.DocumentRepository;
 import com.kortex.backend.repository.UserRepository;
-import com.kortex.backend.service.qdrant.QdrantService;
+import com.kortex.backend.service.QdrantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -85,7 +85,6 @@ public class AdminService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
         
         user.setActive(true);
-        user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
         
         log.info("User {} ({}) activated", userId, user.getEmail());
@@ -104,7 +103,6 @@ public class AdminService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
         
         user.setActive(false);
-        user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
         
         log.info("User {} ({}) deactivated", userId, user.getEmail());
@@ -131,13 +129,11 @@ public class AdminService {
                     file.delete();
                 }
                 
-                // Delete from Qdrant if embeddings exist
-                if (document.getEmbeddingsGenerated()) {
-                    try {
-                        qdrantService.deletePoint("kortex_user_" + userId, document.getId());
-                    } catch (Exception e) {
-                        log.warn("Failed to delete Qdrant points for document {}: {}", document.getId(), e.getMessage());
-                    }
+                // Delete from Qdrant
+                try {
+                    qdrantService.deleteVectorsByDocumentId(userId, document.getId());
+                } catch (Exception e) {
+                    log.warn("Failed to delete Qdrant points for document {}: {}", document.getId(), e.getMessage());
                 }
             } catch (Exception e) {
                 log.error("Error deleting document {} during user deletion: {}", document.getId(), e.getMessage());
@@ -226,7 +222,7 @@ public class AdminService {
                 .filter(d -> d.getExtractedText() != null && !d.getExtractedText().isEmpty())
                 .count();
         int documentsWithEmbeddings = (int) allDocuments.stream()
-                .filter(Document::getEmbeddingsGenerated)
+                .filter(d -> documentChunkRepository.countByDocumentId(d.getId()) > 0)
                 .count();
         int documentsWithSummaries = (int) allDocuments.stream()
                 .filter(d -> d.getSummary() != null && !d.getSummary().isEmpty())
@@ -243,7 +239,7 @@ public class AdminService {
         List<DocumentChunk> allChunks = documentChunkRepository.findAll();
         int totalChunks = allChunks.size();
         int chunksWithEmbeddings = (int) allChunks.stream()
-                .filter(DocumentChunk::isEmbeddingGenerated)
+                .filter(DocumentChunk::getEmbeddingGenerated)
                 .count();
         double embeddingCoverage = totalChunks > 0 
                 ? Math.round((double) chunksWithEmbeddings / totalChunks * 10000.0) / 100.0 
@@ -295,10 +291,19 @@ public class AdminService {
         
         int totalDocuments = allDocuments.size();
         int documentsWithEmbeddings = (int) allDocuments.stream()
-                .filter(Document::getEmbeddingsGenerated)
+                .filter(d -> {
+                    long chunkCount = documentChunkRepository.findByDocumentIdOrderByChunkOrderAsc(d.getId())
+                            .stream()
+                            .filter(DocumentChunk::getEmbeddingGenerated)
+                            .count();
+                    return chunkCount > 0;
+                })
                 .count();
         int documentsFailed = (int) allDocuments.stream()
-                .filter(d -> !d.getEmbeddingsGenerated() && d.getExtractedText() != null)
+                .filter(d -> {
+                    long chunkCount = documentChunkRepository.countByDocumentId(d.getId());
+                    return chunkCount == 0 && d.getExtractedText() != null;
+                })
                 .count();
         int documentsPending = totalDocuments - documentsWithEmbeddings - documentsFailed;
         
@@ -310,13 +315,16 @@ public class AdminService {
         List<DocumentChunk> allChunks = documentChunkRepository.findAll();
         int totalChunks = allChunks.size();
         int chunksWithEmbeddings = (int) allChunks.stream()
-                .filter(DocumentChunk::isEmbeddingGenerated)
+                .filter(DocumentChunk::getEmbeddingGenerated)
                 .count();
         int chunksPending = totalChunks - chunksWithEmbeddings;
         
         // Build failed documents list
         List<EmbeddingStatusResponse.FailedEmbedding> failedDocuments = allDocuments.stream()
-                .filter(d -> !d.getEmbeddingsGenerated() && d.getExtractedText() != null)
+                .filter(d -> {
+                    long chunkCount = documentChunkRepository.countByDocumentId(d.getId());
+                    return chunkCount == 0 && d.getExtractedText() != null;
+                })
                 .map(this::buildFailedEmbedding)
                 .collect(Collectors.toList());
         
@@ -343,7 +351,13 @@ public class AdminService {
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found with id: " + documentId));
         
-        if (document.getEmbeddingsGenerated()) {
+        // Check if document already has embeddings
+        long chunksWithEmbeddings = documentChunkRepository.findByDocumentIdOrderByChunkOrderAsc(documentId)
+                .stream()
+                .filter(DocumentChunk::getEmbeddingGenerated)
+                .count();
+        
+        if (chunksWithEmbeddings > 0) {
             log.warn("Document {} already has embeddings, skipping retry", documentId);
             return;
         }
@@ -376,7 +390,7 @@ public class AdminService {
                 .role(user.getRole().name())
                 .active(user.getActive())
                 .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
+                .updatedAt(user.getCreatedAt())
                 .documentCount(documentCount)
                 .totalStorageBytes(totalStorageBytes)
                 .totalStorageFormatted(formatBytes(totalStorageBytes))
@@ -388,7 +402,7 @@ public class AdminService {
         long totalChunks = documentChunkRepository.countByDocumentId(document.getId());
         long chunksWithEmbeddings = documentChunkRepository.findByDocumentIdOrderByChunkOrderAsc(document.getId())
                 .stream()
-                .filter(DocumentChunk::isEmbeddingGenerated)
+                .filter(DocumentChunk::getEmbeddingGenerated)
                 .count();
         
         return EmbeddingStatusResponse.FailedEmbedding.builder()
@@ -512,13 +526,14 @@ public class AdminService {
     }
 
     private String getFileType(Document document) {
-        String contentType = document.getContentType();
-        if (contentType == null) return "Unknown";
+        String fileType = document.getFileType();
+        if (fileType == null) return "Unknown";
         
-        if (contentType.contains("pdf")) return "PDF";
-        if (contentType.contains("wordprocessingml")) return "DOCX";
-        if (contentType.contains("msword")) return "DOC";
-        if (contentType.contains("text/plain")) return "TXT";
+        String type = fileType.toUpperCase();
+        if (type.equals("PDF")) return "PDF";
+        if (type.equals("DOCX")) return "DOCX";
+        if (type.equals("DOC")) return "DOC";
+        if (type.equals("TXT")) return "TXT";
         return "Other";
     }
 

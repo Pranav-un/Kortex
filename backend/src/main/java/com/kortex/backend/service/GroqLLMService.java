@@ -9,6 +9,10 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Map;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 /**
  * Groq implementation of LLM service.
@@ -29,18 +33,65 @@ public class GroqLLMService implements LLMService {
     public GroqLLMService(
             @Value("${llm.groq.api.url:https://api.groq.com/openai/v1}") String apiUrl,
             @Value("${llm.groq.api.key}") String apiKey,
-            @Value("${llm.groq.model:llama3-8b-8192}") String model,
+            @Value("${llm.groq.model:llama-3.3-70b-versatile}") String model,
             @Value("${llm.groq.max.tokens:1000}") int maxTokens,
             @Value("${llm.groq.temperature:0.7}") double temperature) {
         
         this.restTemplate = new RestTemplate();
         this.apiUrl = apiUrl;
-        this.apiKey = apiKey;
+        // Fallback to OS env if property is missing or placeholder
+        String resolvedKey = apiKey;
+        if (resolvedKey == null || resolvedKey.isBlank() || "your_groq_api_key_here".equalsIgnoreCase(resolvedKey)) {
+            String envKey = System.getenv("GROQ_API_KEY");
+            if (envKey != null && !envKey.isBlank()) {
+                resolvedKey = envKey;
+                log.info("Groq API key loaded from environment variable.");
+            } else {
+                // Try to read from .env files if present
+                String dotenvKey = tryReadKeyFromDotEnv();
+                if (dotenvKey != null && !dotenvKey.isBlank()) {
+                    resolvedKey = dotenvKey;
+                    log.info("Groq API key loaded from .env file.");
+                } else {
+                    log.warn("Groq API key is not set. Configure llm.groq.api.key or environment variable GROQ_API_KEY.");
+                }
+            }
+        }
+        this.apiKey = resolvedKey;
         this.model = model;
         this.defaultMaxTokens = maxTokens;
         this.defaultTemperature = temperature;
         
         log.info("Groq LLM Service initialized with model: {}", model);
+    }
+
+    private String tryReadKeyFromDotEnv() {
+        String[] candidates = new String[]{".env", "./backend/.env"};
+        for (String candidate : candidates) {
+            try {
+                Path path = Paths.get(candidate);
+                if (Files.exists(path)) {
+                    try (Stream<String> lines = Files.lines(path)) {
+                        String value = lines
+                                .filter(line -> !line.trim().startsWith("#"))
+                                .filter(line -> line.contains("GROQ_API_KEY"))
+                                .map(line -> {
+                                    int idx = line.indexOf('=');
+                                    return idx > -1 ? line.substring(idx + 1).trim() : "";
+                                })
+                                .filter(s -> !s.isBlank())
+                                .findFirst()
+                                .orElse(null);
+                        if (value != null && !value.isBlank()) {
+                            return value;
+                        }
+                    }
+                }
+            } catch (Exception ignored) {
+                // Ignore errors reading .env
+            }
+        }
+        return null;
     }
 
     @Override

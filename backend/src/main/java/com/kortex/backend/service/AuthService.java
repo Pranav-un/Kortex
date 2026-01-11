@@ -96,14 +96,28 @@ public class AuthService {
             // Generate JWT token
             String token = jwtUtil.generateToken(userDetails);
 
+            // Safely derive role from authorities
+            Role role = Role.USER;
+            var authorities = userDetails.getAuthorities();
+            if (authorities != null && !authorities.isEmpty()) {
+                String authority = authorities.iterator().next().getAuthority();
+                if (authority != null && authority.startsWith("ROLE_")) {
+                    String roleName = authority.substring(5);
+                    try {
+                        role = Role.valueOf(roleName);
+                    } catch (IllegalArgumentException ignored) {
+                        // Fallback to USER if unexpected role string
+                    }
+                }
+            }
+
             return AuthResponse.builder()
                     .token(token)
                     .type("Bearer")
                     .id(userDetails.getId())
                     .email(userDetails.getEmail())
                     .name(userDetails.getName())
-                    .role(Role.valueOf(userDetails.getAuthorities().iterator().next()
-                            .getAuthority().replace("ROLE_", "")))
+                    .role(role)
                     .build();
 
         } catch (AuthenticationException e) {

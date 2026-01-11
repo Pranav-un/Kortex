@@ -52,7 +52,10 @@ public class DocumentService {
     );
 
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList("pdf", "docx", "doc", "txt");
- Handles versioning: if a file with the same name exists, creates a new version.
+
+    /**
+     * Uploads a document file to the system storage and creates a database record.
+     * Handles versioning: if a file with the same name exists, creates a new version.
      *
      * @param file the uploaded file
      * @param userId the owner's user ID
@@ -171,7 +174,7 @@ public class DocumentService {
             // Chunk and generate embeddings
             int chunkCount = 0;
             try {
-                chunkCount = textChunkingService.chunkDocument(savedDocument, userId);
+                chunkCount = textChunkingService.chunkDocument(savedDocument, userId).size();
                 // Send embeddings generated notification
                 notificationService.sendEmbeddingsGeneratedNotification(userId, savedDocument.getId(), savedDocument.getFilename(), chunkCount);
             } catch (Exception e) {

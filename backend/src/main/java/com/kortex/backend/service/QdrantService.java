@@ -1,8 +1,25 @@
 package com.kortex.backend.service;
 
 import io.qdrant.client.QdrantClient;
-import io.qdrant.client.grpc.Collections.*;
-import io.qdrant.client.grpc.Points.*;
+import io.qdrant.client.grpc.Collections.CollectionInfo;
+import io.qdrant.client.grpc.Collections.CreateCollection;
+import io.qdrant.client.grpc.Collections.Distance;
+import io.qdrant.client.grpc.Collections.VectorParams;
+import io.qdrant.client.grpc.Collections.VectorsConfig;
+import io.qdrant.client.grpc.Points.DeletePoints;
+import io.qdrant.client.grpc.Points.Filter;
+import io.qdrant.client.grpc.Points.FieldCondition;
+import io.qdrant.client.grpc.Points.Match;
+import io.qdrant.client.grpc.Points.PointId;
+import io.qdrant.client.grpc.Points.PointStruct;
+import io.qdrant.client.grpc.Points.PointsSelector;
+import io.qdrant.client.grpc.Points.SearchPoints;
+import io.qdrant.client.grpc.Points.ScoredPoint;
+import io.qdrant.client.grpc.Points.UpsertPoints;
+import io.qdrant.client.grpc.Points.Vectors;
+import io.qdrant.client.grpc.Points.Vector;
+import io.qdrant.client.grpc.Points.WithPayloadSelector;
+import io.qdrant.client.grpc.Points.Condition;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -97,22 +114,22 @@ public class QdrantService {
                     .mapToObj(d -> (float) d)
                     .collect(Collectors.toList());
 
-            // Build payload with metadata
-            Map<String, Value> payload = new HashMap<>();
-            payload.put("documentId", Value.newBuilder().setIntegerValue(documentId).build());
-            payload.put("chunkId", Value.newBuilder().setIntegerValue(chunkId).build());
+            // Build payload with metadata (Qdrant JsonWithInt.Value)
+            Map<String, io.qdrant.client.grpc.JsonWithInt.Value> payload = new HashMap<>();
+            payload.put("documentId", io.qdrant.client.grpc.JsonWithInt.Value.newBuilder().setIntegerValue(documentId).build());
+            payload.put("chunkId", io.qdrant.client.grpc.JsonWithInt.Value.newBuilder().setIntegerValue(chunkId).build());
             
             // Add additional metadata
             if (metadata != null) {
                 metadata.forEach((key, value) -> {
                     if (value instanceof String) {
-                        payload.put(key, Value.newBuilder().setStringValue((String) value).build());
+                        payload.put(key, io.qdrant.client.grpc.JsonWithInt.Value.newBuilder().setStringValue((String) value).build());
                     } else if (value instanceof Integer) {
-                        payload.put(key, Value.newBuilder().setIntegerValue((Integer) value).build());
+                        payload.put(key, io.qdrant.client.grpc.JsonWithInt.Value.newBuilder().setIntegerValue((Integer) value).build());
                     } else if (value instanceof Long) {
-                        payload.put(key, Value.newBuilder().setIntegerValue((Long) value).build());
+                        payload.put(key, io.qdrant.client.grpc.JsonWithInt.Value.newBuilder().setIntegerValue((Long) value).build());
                     } else if (value instanceof Boolean) {
-                        payload.put(key, Value.newBuilder().setBoolValue((Boolean) value).build());
+                        payload.put(key, io.qdrant.client.grpc.JsonWithInt.Value.newBuilder().setBoolValue((Boolean) value).build());
                     }
                 });
             }
@@ -159,18 +176,18 @@ public class QdrantService {
                                 .mapToObj(d -> (float) d)
                                 .collect(Collectors.toList());
 
-                        Map<String, Value> payload = new HashMap<>();
-                        payload.put("documentId", Value.newBuilder().setIntegerValue(vectorData.getDocumentId()).build());
-                        payload.put("chunkId", Value.newBuilder().setIntegerValue(vectorData.getChunkId()).build());
+                        Map<String, io.qdrant.client.grpc.JsonWithInt.Value> payload = new HashMap<>();
+                        payload.put("documentId", io.qdrant.client.grpc.JsonWithInt.Value.newBuilder().setIntegerValue(vectorData.documentId).build());
+                        payload.put("chunkId", io.qdrant.client.grpc.JsonWithInt.Value.newBuilder().setIntegerValue(vectorData.chunkId).build());
 
                         if (vectorData.getMetadata() != null) {
                             vectorData.getMetadata().forEach((key, value) -> {
                                 if (value instanceof String) {
-                                    payload.put(key, Value.newBuilder().setStringValue((String) value).build());
+                                    payload.put(key, io.qdrant.client.grpc.JsonWithInt.Value.newBuilder().setStringValue((String) value).build());
                                 } else if (value instanceof Integer) {
-                                    payload.put(key, Value.newBuilder().setIntegerValue((Integer) value).build());
+                                    payload.put(key, io.qdrant.client.grpc.JsonWithInt.Value.newBuilder().setIntegerValue((Integer) value).build());
                                 } else if (value instanceof Long) {
-                                    payload.put(key, Value.newBuilder().setIntegerValue((Long) value).build());
+                                    payload.put(key, io.qdrant.client.grpc.JsonWithInt.Value.newBuilder().setIntegerValue((Long) value).build());
                                 }
                             });
                         }
@@ -227,7 +244,19 @@ public class QdrantService {
 
             qdrantClient.deleteAsync(deletePoints).get();
             log.info("Deleted vectors for document {} from collection {}", documentId, collectionName);
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Delete interrupted for document {}", documentId, e);
+            throw new RuntimeException("Failed to delete vectors from Qdrant", e);
+        } catch (ExecutionException e) {
+            // Gracefully handle missing collection without hard dependency on io.grpc at compile time
+            Throwable cause = e.getCause();
+            String causeClass = cause != null ? cause.getClass().getName() : "";
+            String causeMessage = cause != null && cause.getMessage() != null ? cause.getMessage() : "";
+            if ("io.grpc.StatusRuntimeException".equals(causeClass) && causeMessage.contains("NOT_FOUND")) {
+                log.warn("Qdrant collection {} not found when deleting document {} — skipping delete", collectionName, documentId);
+                return;
+            }
             log.error("Failed to delete vectors for document {}", documentId, e);
             throw new RuntimeException("Failed to delete vectors from Qdrant", e);
         }
@@ -243,6 +272,9 @@ public class QdrantService {
      */
     public List<SearchResult> search(Long userId, double[] queryEmbedding, int limit) {
         String collectionName = getCollectionName(userId);
+
+        // Ensure the collection exists before searching to avoid NOT_FOUND errors
+        ensureCollectionExists(userId);
 
         try {
             List<Float> queryVector = Arrays.stream(queryEmbedding)

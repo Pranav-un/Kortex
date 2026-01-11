@@ -73,8 +73,8 @@ public class SemanticSearchService {
                     .filter(result -> result.getChunk() != null)
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            log.error("Error performing semantic search", e);
-            throw new RuntimeException("Semantic search failed", e);
+            log.error("Error performing semantic search — returning no results", e);
+            return List.of();
         }
     }
 

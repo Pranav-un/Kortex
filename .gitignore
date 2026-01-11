@@ -1,2 +1,44 @@
+# OS/system files
+.DS_Store
+Thumbs.db
+
+# IDE/editor
+.vscode/
+.idea/
+
+# Python
+.venv/
+venv/
+**/__pycache__/
+*.pyc
+embeddings_service/.venv/
+embeddings_service/__pycache__/
+
+# Java/Maven
+backend/target/
+backend/*.iml
+backend/.classpath
+backend/.project
+backend/.settings/
+
+# Node/Vite
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# App secrets & data
+backend/.env
+backend/.env.local
+uploads/
+qdrant-data/
+postman/
+
+# Logs & temp
+*.log
+*.tmp
+*.swp
 .copilot-memory/
 .env
+.postman/
+.qdrant-data/

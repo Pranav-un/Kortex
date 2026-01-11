@@ -56,14 +56,8 @@ public class ClusteringService {
                 return List.of();
             }
 
-            // Convert to float array for Qdrant
-            float[] queryVector = new float[queryEmbedding.length];
-            for (int i = 0; i < queryEmbedding.length; i++) {
-                queryVector[i] = (float) queryEmbedding[i];
-            }
-
             // Search Qdrant for similar chunks (get more results to find unique documents)
-            List<QdrantService.SearchResult> results = qdrantService.search(userId, queryVector, limit * 5);
+            List<QdrantService.SearchResult> results = qdrantService.search(userId, queryEmbedding, limit * 5);
 
             // Group by document and calculate average similarity
             Map<Long, List<Float>> documentScores = new HashMap<>();
