@@ -62,6 +62,10 @@ export interface SearchResult {
   chunkText: string;
   similarityScore: number;
   chunkOrder: number;
+  wordCount?: number;
+  startPosition?: number;
+  endPosition?: number;
+  uploadTime?: string;
 }
 
 export interface SearchResponse {
@@ -77,6 +81,10 @@ export interface QuestionResponse {
   contextUsed: string[];
   model: string;
   documentId: number | null;
+  llmProvider?: string;
+  llmModel?: string;
+  contextChunksUsed?: number;
+  estimatedTokens?: number;
 }
 
 export interface Citation {
@@ -84,6 +92,10 @@ export interface Citation {
   documentName: string;
   chunkOrder: number;
   similarityScore: number;
+  chunkId?: number;
+  citationNumber?: number;
+  relevanceScore?: number;
+  excerpt?: string;
 }
 
 export interface NotificationMessage {

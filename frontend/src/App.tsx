@@ -2,12 +2,17 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { Layout } from './components/Layout';
+import ToastContainer from './components/ToastContainer';
 import { ROUTES } from './config/constants';
 
-// Pages (to be implemented)
+// Pages
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import DashboardPage from './pages/DashboardPage';
 import DocumentsPage from './pages/DocumentsPage';
+import { DocumentDetailsPage } from './pages/DocumentDetailsPage';
 import SearchPage from './pages/SearchPage';
 import ChatPage from './pages/ChatPage';
 import AnalyticsPage from './pages/AnalyticsPage';
@@ -20,15 +25,38 @@ function App() {
         <NotificationProvider>
           <Routes>
             {/* Public routes */}
+            <Route path={ROUTES.HOME} element={<LandingPage />} />
             <Route path={ROUTES.LOGIN} element={<LoginPage />} />
             <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
 
-            {/* Protected routes */}
+            {/* Protected routes with layout */}
+            <Route
+              path={ROUTES.DASHBOARD}
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <DashboardPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
             <Route
               path={ROUTES.DOCUMENTS}
               element={
                 <ProtectedRoute>
-                  <DocumentsPage />
+                  <Layout>
+                    <DocumentsPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/documents/:id"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <DocumentDetailsPage />
+                  </Layout>
                 </ProtectedRoute>
               }
             />
@@ -36,7 +64,9 @@ function App() {
               path={ROUTES.SEARCH}
               element={
                 <ProtectedRoute>
-                  <SearchPage />
+                  <Layout>
+                    <SearchPage />
+                  </Layout>
                 </ProtectedRoute>
               }
             />
@@ -44,7 +74,9 @@ function App() {
               path={ROUTES.CHAT}
               element={
                 <ProtectedRoute>
-                  <ChatPage />
+                  <Layout>
+                    <ChatPage />
+                  </Layout>
                 </ProtectedRoute>
               }
             />
@@ -52,25 +84,29 @@ function App() {
               path={ROUTES.ANALYTICS}
               element={
                 <ProtectedRoute>
-                  <AnalyticsPage />
+                  <Layout>
+                    <AnalyticsPage />
+                  </Layout>
                 </ProtectedRoute>
               }
             />
 
-            {/* Admin routes */}
+            {/* Admin routes with layout */}
             <Route
               path={ROUTES.ADMIN}
               element={
                 <ProtectedRoute requireAdmin>
-                  <AdminPage />
+                  <Layout>
+                    <AdminPage />
+                  </Layout>
                 </ProtectedRoute>
               }
             />
 
             {/* Default redirect */}
-            <Route path={ROUTES.HOME} element={<Navigate to={ROUTES.DOCUMENTS} replace />} />
-            <Route path="*" element={<Navigate to={ROUTES.DOCUMENTS} replace />} />
+            <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
           </Routes>
+          <ToastContainer />
         </NotificationProvider>
       </AuthProvider>
     </BrowserRouter>

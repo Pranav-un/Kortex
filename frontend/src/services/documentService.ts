@@ -1,5 +1,5 @@
 import { apiClient } from './apiClient';
-import { Document, DocumentUploadResponse } from '../types';
+import type { Document, DocumentUploadResponse } from '../types';
 
 export const documentService = {
   async uploadDocument(file: File, onProgress?: (progress: number) => void): Promise<DocumentUploadResponse> {
@@ -13,6 +13,10 @@ export const documentService = {
   },
 
   async getDocument(id: number): Promise<Document> {
+    return apiClient.get<Document>(`/documents/${id}`);
+  },
+
+  async getDocumentById(id: number): Promise<Document> {
     return apiClient.get<Document>(`/documents/${id}`);
   },
 

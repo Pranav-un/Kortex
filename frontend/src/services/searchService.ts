@@ -1,5 +1,5 @@
 import { apiClient } from './apiClient';
-import { SearchResponse, QuestionResponse } from '../types';
+import type { SearchResponse, QuestionResponse } from '../types';
 
 export const searchService = {
   async search(query: string, limit: number = 10, documentId?: number): Promise<SearchResponse> {

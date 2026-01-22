@@ -1,7 +1,8 @@
-import { Client, IMessage } from '@stomp/stompjs';
+import { Client } from '@stomp/stompjs';
+import type { IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { WS_BASE_URL, TOKEN_KEY } from '../config/constants';
-import { NotificationMessage } from '../types';
+import type { NotificationMessage } from '../types';
 
 type NotificationCallback = (notification: NotificationMessage) => void;
 

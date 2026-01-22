@@ -1,5 +1,5 @@
 import { apiClient } from './apiClient';
-import { AuthResponse, LoginRequest, RegisterRequest, User } from '../types';
+import type { AuthResponse, LoginRequest, RegisterRequest, User } from '../types';
 import { TOKEN_KEY, USER_KEY } from '../config/constants';
 
 export const authService = {

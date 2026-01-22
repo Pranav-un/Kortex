@@ -1,7 +1,6 @@
 package com.kortex.backend.security;
 
 import com.kortex.backend.model.User;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,7 +14,6 @@ import java.util.Collections;
  * Wraps the User entity for authentication and authorization.
  */
 @Data
-@AllArgsConstructor
 public class UserDetailsImpl implements UserDetails {
 
     private Long id;
@@ -24,6 +22,15 @@ public class UserDetailsImpl implements UserDetails {
     private String name;
     private Collection<? extends GrantedAuthority> authorities;
     private boolean active;
+
+    public UserDetailsImpl(Long id, String email, String password, String name, Collection<? extends GrantedAuthority> authorities, boolean active) {
+        this.id = id;
+        this.email = email;
+        this.password = password;
+        this.name = name;
+        this.authorities = authorities;
+        this.active = active;
+    }
 
     /**
      * Build UserDetails from User entity.

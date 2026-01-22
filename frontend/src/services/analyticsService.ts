@@ -1,5 +1,5 @@
 import { apiClient } from './apiClient';
-import {
+import type {
   AnalyticsOverview,
   KeywordFrequency,
   UploadStatistics,

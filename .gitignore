@@ -42,3 +42,4 @@ postman/
 .env
 .postman/
 .qdrant-data/
+.STARTUP_GUIDE.md

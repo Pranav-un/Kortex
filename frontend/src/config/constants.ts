@@ -1,6 +1,6 @@
 // API Configuration
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-export const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL || 'http://localhost:8080/ws';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+export const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL || '/ws';
 
 // Local Storage Keys
 export const TOKEN_KEY = 'kortex_auth_token';
@@ -37,6 +37,7 @@ export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
   REGISTER: '/register',
+  DASHBOARD: '/dashboard',
   DOCUMENTS: '/documents',
   SEARCH: '/search',
   CHAT: '/chat',
