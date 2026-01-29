@@ -64,12 +64,10 @@ const RegisterPage: React.FC = () => {
           <div className="bg-[#0D0620]/90 backdrop-blur-sm p-8 rounded-xl border border-[#CF9EFF]/20 ring-1 ring-[#CF9EFF]/10 shadow-[0_0_40px_rgba(207,158,255,0.08)]">
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#CF9EFF] via-[#A98BFF] to-[#7A5CF5] mb-2">Create Account</h1>
-              <p className="text-sm text-slate-300">
-                Start managing your documents with AI
-              </p>
+              <p className="text-sm text-slate-300">Start managing your documents with AI</p>
             </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                 {error}
@@ -124,22 +122,22 @@ const RegisterPage: React.FC = () => {
             >
               Create account
             </Button>
-          </form>
+            </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-slate-300">
-              Already have an account?{' '}
-              <Link to={ROUTES.LOGIN} className="font-medium text-[#CF9EFF] hover:underline">
-                Sign in
-              </Link>
-            </p>
+            <div className="mt-6 text-center">
+              <p className="text-sm text-slate-300">
+                Already have an account?{' '}
+                <Link to={ROUTES.LOGIN} className="font-medium text-[#CF9EFF] hover:underline">
+                  Sign in
+                </Link>
+              </p>
+            </div>
           </div>
-          </div>
+
           <div className="mt-4 text-center">
-            <Link to={ROUTES.HOME} className="text-sm text-slate-300 hover:text-slate-100">
-              ← Back to home
-            </Link>
+            <Link to={ROUTES.HOME} className="text-sm text-slate-300 hover:text-slate-100">← Back to home</Link>
           </div>
+        </div>
       </div>
     </div>
   );
