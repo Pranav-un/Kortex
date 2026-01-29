@@ -1,0 +1,81 @@
+.beam-hit-box {
+  position: relative;
+}
+
+/* Simulate the laser hitting the card: a radial glow emanating from top-center */
+.beam-hit-box::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -48px; /* place glow outside-right edge to simulate incoming beam */
+  transform: translateY(-50%);
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle at left center,
+    rgba(207, 158, 255, 0.70) 0%,
+    rgba(207, 158, 255, 0.45) 28%,
+    rgba(207, 158, 255, 0.18) 56%,
+    rgba(207, 158, 255, 0.00) 80%);
+  filter: blur(22px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Subtle inner highlight along top edge to sell the hit */
+.beam-hit-box::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -1px;
+  width: 12px;
+  bottom: 0;
+  border-radius: 0 12px 12px 0;
+  background: linear-gradient(to left, rgba(207,158,255,0.65), rgba(207,158,255,0));
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* Wide tray glow centered where the beam lands */
+.beam-tray {
+  position: relative;
+}
+.beam-tray::before {
+  content: "";
+  position: absolute;
+    top: -60px; /* raised further to match 1.6 sizing */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 96%;
+  height: 240px;
+  background: radial-gradient(ellipse at center,
+    rgba(207,158,255,0.75) 0%,
+    rgba(207,158,255,0.45) 28%,
+    rgba(207,158,255,0.15) 62%,
+    rgba(207,158,255,0.00) 90%);
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+/* Thin rim highlight to sell the exact contact at tray top */
+.beam-tray::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 96%;
+  height: 24px;
+  background: radial-gradient(ellipse at center,
+    rgba(207,158,255,0.65) 0%,
+    rgba(207,158,255,0.25) 40%,
+    rgba(207,158,255,0.00) 100%);
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+/* dotted panel background */
+.panel-dots {
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(255,255,255,0.06) 1px, rgba(0,0,0,0) 1px);
+  background-size: 12px 12px;
+}
