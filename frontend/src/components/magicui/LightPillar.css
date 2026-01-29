@@ -1,0 +1,16 @@
+.light-pillar-fallback {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: radial-gradient(ellipse at center, rgba(162, 120, 255, 0.25) 0%, rgba(162, 120, 255, 0.12) 40%, rgba(162, 120, 255, 0) 80%);
+}
+
+.light-pillar-container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
