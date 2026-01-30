@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, Search, MessageSquare, BarChart3, Shield, Zap, CheckCircle } from 'lucide-react';
+import { FileText, Search, MessageSquare, BarChart3, Shield, CheckCircle } from 'lucide-react';
 import { Button } from '../components/ui';
 import { ROUTES } from '../config/constants';
 import LaserFlow from '../components/magicui/LaserFlow';

@@ -289,7 +289,8 @@ export const LaserFlow = ({
   const currentDprRef = useRef(1);
   const lastSizeRef = useRef({ width: 0, height: 0, dpr: 0 });
   const fpsSamplesRef = useRef<number[]>([]);
-  const lastFpsCheckRef = useRef(performance.now());
+  // Adaptive DPR disabled; remove FPS check state
+  // const lastFpsCheckRef = useRef(performance.now());
   const emaDtRef = useRef(16.7);
   const pausedRef = useRef(false);
   const inViewRef = useRef(true);
@@ -390,7 +391,6 @@ export const LaserFlow = ({
 
     const clock = new THREE.Clock();
     let prevTime = 0;
-    let fade = hasFadedRef.current ? 1 : 0;
 
     const mouseTarget = new THREE.Vector2(0, 0);
     const mouseSmooth = new THREE.Vector2(0, 0);
@@ -483,42 +483,9 @@ export const LaserFlow = ({
 
     let raf = 0 as any;
 
-    const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
-    const dprFloor = 0.6;
-    const lowerThresh = 50;
-    const upperThresh = 58;
-    let lastDprChangeRef = 0;
-    const dprChangeCooldown = 2000;
+    // Adaptive DPR helpers removed
 
-    const adjustDprIfNeeded = (now: number) => {
-      const elapsed = now - lastFpsCheckRef.current;
-      if (elapsed < 750) return;
-
-      const samples = fpsSamplesRef.current;
-      if (samples.length === 0) {
-        lastFpsCheckRef.current = now;
-        return;
-      }
-      const avgFps = samples.reduce((a, b) => a + b, 0) / samples.length;
-
-      let next = currentDprRef.current;
-      const base = baseDprRef.current;
-
-      if (avgFps < lowerThresh) {
-        next = clamp(currentDprRef.current * 0.85, dprFloor, base);
-      } else if (avgFps > upperThresh && currentDprRef.current < base) {
-        next = clamp(currentDprRef.current * 1.1, dprFloor, base);
-      }
-
-      if (Math.abs(next - currentDprRef.current) > 0.01 && now - lastDprChangeRef > dprChangeCooldown) {
-        currentDprRef.current = next;
-        lastDprChangeRef = now;
-        setSizeNow();
-      }
-
-      fpsSamplesRef.current = [];
-      lastFpsCheckRef.current = now;
-    };
+    // Adaptive DPR disabled for consistency; remove unused function
 
     const animate = () => {
       raf = requestAnimationFrame(animate);

@@ -1,0 +1,68 @@
+.dock-outer {
+  position: fixed;
+  top: 0.5rem;
+  left: 0;
+  width: 100%;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  pointer-events: none; /* allow content beneath except dock items */
+}
+
+.dock-panel {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  width: fit-content;
+  gap: 1rem;
+  border-radius: 1rem;
+  background-color: #0D0620; /* deep violet */
+  border: 1px solid #2A1B45; /* subtle violet border */
+  padding: 0 0.5rem 0.5rem;
+  box-shadow: 0 8px 24px rgba(121, 92, 245, 0.18), inset 0 0 0 1px rgba(207, 158, 255, 0.12);
+  pointer-events: auto;
+}
+
+.dock-item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background-color: #0A0316;
+  border: 1px solid #2A1B45;
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(207, 158, 255, 0.08);
+  cursor: pointer;
+  outline: none;
+  color: #CF9EFF; /* neon lilac icon color */
+}
+
+.dock-item:focus,
+.dock-item:hover {
+  box-shadow:
+    0 10px 30px rgba(122, 92, 245, 0.25),
+    0 0 0 1px rgba(207, 158, 255, 0.25);
+}
+
+.dock-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dock-label {
+  position: absolute;
+  top: -1.5rem;
+  left: 50%;
+  width: fit-content;
+  white-space: pre;
+  border-radius: 0.375rem;
+  border: 1px solid #2A1B45;
+  background-color: #0D0620;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  color: #EDE3FF;
+  transform: translateX(-50%);
+}

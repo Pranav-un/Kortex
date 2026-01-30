@@ -1,0 +1,179 @@
+:root {
+  --violet-deep: #0D0620;
+  --violet-dark: #0A0316;
+  --violet-border: #2A1B45;
+  --lilac: #CF9EFF;
+  --lilac-soft: #EDE3FF;
+  --lilac-glow: rgba(207, 158, 255, 0.25);
+}
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .bento-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .bento-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bento-card {
+  background-color: var(--violet-dark);
+  border: 1px solid var(--violet-border);
+  border-radius: 1rem;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(207, 158, 255, 0.12),
+    inset 0 0 0 1px rgba(42, 27, 69, 0.40);
+  padding: 1rem;
+}
+
+.bento-stat {
+  display: flex;
+  align-items: center;
+}
+
+.actions.bento-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.bento-action {
+  min-height: 7rem;
+}
+
+.bento-card:hover {
+  box-shadow:
+    0 16px 40px rgba(122, 92, 245, 0.25),
+    0 0 0 1px var(--lilac-glow);
+}
+
+/* Welcome card inspired by jelly visual */
+.welcome-card {
+  position: relative;
+  overflow: hidden;
+  padding: 1.5rem;
+}
+
+.welcome-content {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  align-items: center;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .welcome-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+.welcome-text .welcome-sub {
+  color: var(--lilac);
+  font-size: 0.85rem;
+}
+.welcome-text .welcome-name {
+  color: var(--lilac-soft);
+  font-weight: 800;
+  font-size: 1.75rem;
+  line-height: 2rem;
+}
+.welcome-text .welcome-msg {
+  color: var(--lilac);
+  margin-top: 0.25rem;
+}
+.welcome-text .welcome-tip {
+  color: var(--lilac-soft);
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.welcome-visual {
+  position: relative;
+  height: 160px;
+  border-radius: 1rem;
+  background: radial-gradient(120px 80px at 60% 40%, rgba(121,92,245,0.6), rgba(121,92,245,0.0)),
+              radial-gradient(80px 60px at 40% 60%, rgba(169,139,255,0.5), rgba(169,139,255,0.0)),
+              linear-gradient(180deg, rgba(13,6,32,0.6), rgba(13,6,32,0.9));
+  border: 1px solid var(--violet-border);
+  box-shadow: inset 0 0 30px rgba(207,158,255,0.12);
+  filter: saturate(1.2) blur(0px);
+}
+
+@keyframes jellyFloat {
+  0%   { transform: translateY(0) scale(1); }
+  50%  { transform: translateY(-6px) scale(1.02); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+.welcome-visual::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(180px 120px at 70% 60%, rgba(130,180,255,0.65), rgba(130,180,255,0.0)),
+    radial-gradient(120px 80px at 40% 40%, rgba(207,158,255,0.8), rgba(207,158,255,0.0));
+  mix-blend-mode: screen;
+  animation: jellyFloat 6s ease-in-out infinite;
+}
+
+.welcome-visual::after {
+  content: '';
+  position: absolute;
+  bottom: 10%;
+  left: 15%;
+  width: 70%;
+  height: 2px;
+  border-radius: 9999px;
+  background: radial-gradient(120px 12px at 50% 50%, rgba(207,158,255,0.6), rgba(207,158,255,0.0));
+  opacity: 0.6;
+}
+
+/* Globe dark card styling to match dashboard */
+.globe-card{
+  background-color: var(--violet-dark);
+  border: 1px solid var(--violet-border);
+  /* Remove inner inset border from generic bento-card shadow */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(207, 158, 255, 0.12);
+}
+.globe-card .bento-title{
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 800;
+  text-align: center;
+  width: 100%;
+  background: linear-gradient(180deg, var(--lilac-soft), var(--lilac));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 0.5rem;
+}
+.globe-card .bento-body{ padding: .5rem .5rem .75rem; }
+/* Let the globe use its own aspect ratio sizing; keep a local cap for this card */
+.globe-card .globe-wrap{ max-height: 320px; }
+.globe-card .bento-desc{ display:none; }
+/* Inner glow ring removed for a cleaner look */
+
+/* Metrics overview grid to match globe height */
+.metrics-card{ min-height: 320px; display:flex; }
+.metrics-card .bento-body{ flex:1; display:flex; flex-direction:column; }
+.metrics-card .bento-header{ margin-bottom:.5rem; }
+.metrics-card .bento-title{ font-size: 16px; font-weight: 700; color: var(--lilac); }
+.metrics-grid{ flex:1; display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); grid-auto-rows: 1fr; gap: 1rem; }
+/* Compact tile padding to save vertical space */
+.metric-tile{ background-color: var(--violet-dark); border:1px solid var(--violet-border); border-radius: .75rem; padding: .75rem; display:flex; align-items:center; height:100%; }
+.metric-progress{ width:100%; height:4px; border-radius:9999px; background: rgba(42,27,69,0.7); margin-top:.5rem; overflow:hidden; }
+.metric-bar{ height:100%; background: linear-gradient(90deg, #7A5CF5, #CF9EFF); box-shadow: 0 0 8px rgba(207,158,255,0.6); }
+
+@media (max-width: 768px){
+  .metrics-grid{ grid-template-columns: 1fr; grid-auto-rows: auto; }
+  .metrics-card{ min-height: auto; }
+}
+
