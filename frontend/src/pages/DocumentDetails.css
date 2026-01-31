@@ -1,0 +1,20 @@
+:root{
+  --violet-deep:#0D0620;
+  --violet-dark:#0A0316;
+  --violet-border:#2A1B45;
+  --lilac:#CF9EFF;
+  --lilac-soft:#EDE3FF;
+}
+
+.dd-header{ display:flex; align-items:flex-end; justify-content:space-between; gap:1rem; }
+.dd-title{ color:var(--lilac-soft); font-weight:800; font-size:26px; }
+.dd-sub{ color:var(--lilac); font-size:14px; }
+
+.dd-card{ background-color:var(--violet-dark)!important; border:1px solid var(--violet-border)!important; }
+.dd-section-title{ color:var(--lilac-soft); font-weight:600; }
+.dd-muted{ color:var(--lilac); font-size:12px; }
+.dd-body{ color:var(--lilac); line-height:1.8; white-space:pre-wrap; }
+
+.dd-meta-item{ display:flex; align-items:flex-start; gap:.75rem; padding:.5rem .5rem; border-radius:.5rem; }
+.dd-meta-label{ color:var(--lilac); font-size:12px; }
+.dd-meta-value{ color:var(--lilac-soft); font-weight:600; }

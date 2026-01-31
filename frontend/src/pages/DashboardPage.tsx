@@ -10,12 +10,17 @@ import Dock from '../components/magicui/Dock';
 import './Dashboard.css';
 import { BentoGrid, BentoCard } from '../components/magicui/BentoGrid';
 import Globe from '../components/magicui/Globe';
+import AnimatedList from '../components/magicui/AnimatedList';
+import NotificationCard from '../components/magicui/NotificationCard';
+import { useAuth } from '../contexts/AuthContext';
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,6 +39,13 @@ const DashboardPage: React.FC = () => {
     };
 
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    // Show welcome notification for 10 seconds after entering dashboard
+    setShowWelcome(true);
+    const t = setTimeout(() => setShowWelcome(false), 10000);
+    return () => clearTimeout(t);
   }, []);
 
   const dockItems = useMemo(() => ([
@@ -64,82 +76,105 @@ const DashboardPage: React.FC = () => {
   const summariesPct = totalDocs ? Math.round((withSummaries / totalDocs) * 100) : 0;
   const avgWordsPerDoc = totalDocs ? Math.round(totalWords / totalDocs) : 0;
 
+  const lastDoc = recentDocuments[0];
+  const formatTimeAgo = (d: Date) => {
+    const diff = Date.now() - d.getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}m ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  };
+
   return (
     <div className="min-h-screen bg-[#0D0620] pt-28 px-6">
       <Dock items={dockItems} panelHeight={68} baseItemSize={50} magnification={70} />
-      <div className="max-w-7xl mx-auto">
+      {showWelcome && (
+        <div className="fixed top-24 left-0 right-0 z-50 flex justify-center px-4">
+          <AnimatedList>
+            <NotificationCard
+              name={`Welcome, ${user?.name || 'User'}`}
+              description="You’re all set — enjoy Kortex!"
+              time="Just now"
+              icon="👋"
+              color="#7A5CF5"
+            />
+          </AnimatedList>
+        </div>
+      )}
+      <div className="max-w-5xl mx-auto">
         <BentoGrid>
-          {/* Overview metrics (2x2) + Globe */}
-          <BentoCard
-            name="Overview"
-            className="col-span-4 xl:col-span-3 metrics-card"
-          >
-            <div className="metrics-grid">
+          {/* Overview metrics (standalone grid, no outer box) */}
+          <div className="col-span-4 xl:col-span-3 metrics-grid-standalone">
               <div className="metric-tile">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-lg bg-[#120A24] border border-[#2A1B45]">
-                    <FileText size={24} className="text-[#CF9EFF]" />
+                <div className="metric-header">
+                  <div className="metric-icon p-3 rounded-lg bg-[#120A24] border border-[#2A1B45]">
+                    <FileText size={20} className="text-[#CF9EFF]" />
                   </div>
-                  <div>
-                    <p className="text-sm text-[#CF9EFF]">Total Documents</p>
-                    <p className="text-2xl font-bold text-[#EDE3FF]">
-                      {totalDocs}
-                    </p>
-                    <p className="text-xs text-[#CF9EFF] mt-1">Avg words/doc: {avgWordsPerDoc}</p>
-                  </div>
+                  <h4 className="metric-title">Total Documents</h4>
+                  <span className="metric-value ml-auto">{totalDocs}</span>
                 </div>
-                <div className="metric-progress"><div className="metric-bar" style={{width: `${Math.min(100, avgWordsPerDoc / 1000 * 100)}%`}} /></div>
+                <div className="metric-bar-wrap">
+                  <div className="metric-bar" style={{width: `100%`}} />
+                </div>
+                <p className="metric-subtext">Avg words/doc: {avgWordsPerDoc}</p>
+                {lastDoc ? (
+                  <p className="metric-foot">Last upload: {lastDoc.filename} · {formatTimeAgo(new Date(lastDoc.uploadTime))}</p>
+                ) : null}
               </div>
               
               <div className="metric-tile">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-lg bg-[#120A24] border border-[#2A1B45]">
-                    <CheckCircle size={24} className="text-[#7A5CF5]" />
+                <div className="metric-header">
+                  <div className="metric-icon p-3 rounded-lg bg-[#120A24] border border-[#2A1B45]">
+                    <CheckCircle size={20} className="text-[#7A5CF5]" />
                   </div>
-                  <div>
-                    <p className="text-sm text-[#CF9EFF]">With Embeddings</p>
-                    <p className="text-2xl font-bold text-[#EDE3FF]">
-                      {withEmbeddings}
-                    </p>
-                    <p className="text-xs text-[#CF9EFF] mt-1">{embeddingsPct}% of total</p>
-                  </div>
+                  <h4 className="metric-title">With Embeddings</h4>
+                  <span className="metric-value ml-auto">{withEmbeddings}</span>
                 </div>
-                <div className="metric-progress"><div className="metric-bar" style={{width: `${embeddingsPct}%`}} /></div>
+                <div className="metric-bar-wrap">
+                  <div className="metric-bar" style={{width: `${embeddingsPct}%`}} />
+                </div>
+                <p className="metric-subtext">{embeddingsPct}% of total</p>
+                {lastDoc ? (
+                  <p className="metric-foot">Latest embedded: {withEmbeddings}/{totalDocs}</p>
+                ) : null}
               </div>
 
               <div className="metric-tile">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-lg bg-[#120A24] border border-[#2A1B45]">
-                    <MessageSquare size={24} className="text-[#A98BFF]" />
+                <div className="metric-header">
+                  <div className="metric-icon p-3 rounded-lg bg-[#120A24] border border-[#2A1B45]">
+                    <MessageSquare size={20} className="text-[#A98BFF]" />
                   </div>
-                  <div>
-                    <p className="text-sm text-[#CF9EFF]">With Summaries</p>
-                    <p className="text-2xl font-bold text-[#EDE3FF]">
-                      {withSummaries}
-                    </p>
-                    <p className="text-xs text-[#CF9EFF] mt-1">{summariesPct}% of total</p>
-                  </div>
+                  <h4 className="metric-title">With Summaries</h4>
+                  <span className="metric-value ml-auto">{withSummaries}</span>
                 </div>
-                <div className="metric-progress"><div className="metric-bar" style={{width: `${summariesPct}%`}} /></div>
+                <div className="metric-bar-wrap">
+                  <div className="metric-bar" style={{width: `${summariesPct}%`}} />
+                </div>
+                <p className="metric-subtext">{summariesPct}% of total</p>
+                {lastDoc ? (
+                  <p className="metric-foot">Latest summarized: {withSummaries}/{totalDocs}</p>
+                ) : null}
               </div>
 
               <div className="metric-tile">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-lg bg-[#120A24] border border-[#2A1B45]">
-                    <BarChart3 size={24} className="text-[#CF9EFF]" />
+                <div className="metric-header">
+                  <div className="metric-icon p-3 rounded-lg bg-[#120A24] border border-[#2A1B45]">
+                    <BarChart3 size={20} className="text-[#CF9EFF]" />
                   </div>
-                  <div>
-                    <p className="text-sm text-[#CF9EFF]">Total Words</p>
-                    <p className="text-2xl font-bold text-[#EDE3FF]">
-                      {totalWords?.toLocaleString() || '0'}
-                    </p>
-                    <p className="text-xs text-[#CF9EFF] mt-1">Across {totalDocs} documents</p>
-                  </div>
+                  <h4 className="metric-title">Total Words</h4>
+                  <span className="metric-value ml-auto">{totalWords?.toLocaleString() || '0'}</span>
                 </div>
-                <div className="metric-progress"><div className="metric-bar" style={{width: `${Math.min(100, (totalWords/ (totalDocs || 1)) / 2000 * 100)}%`}} /></div>
+                <div className="metric-bar-wrap">
+                  <div className="metric-bar" style={{width: `${Math.min(100, (avgWordsPerDoc / 2000) * 100)}%`}} />
+                </div>
+                <p className="metric-subtext">Across {totalDocs} documents</p>
+                {lastDoc ? (
+                  <p className="metric-foot">Avg per doc: {avgWordsPerDoc}</p>
+                ) : null}
               </div>
-            </div>
-          </BentoCard>
+          </div>
 
           <BentoCard name="Globe" className="col-span-2 xl:col-span-3 globe-card">
             <Globe config={{
@@ -157,8 +192,8 @@ const DashboardPage: React.FC = () => {
         </BentoGrid>
 
         {/* Quick Actions Bento */}
-        <div className="bento-grid actions mt-6 mb-8">
-          <Card hover className="bento-card bento-action cursor-pointer" onClick={() => navigate(ROUTES.DOCUMENTS)}>
+        <div className="bento-grid actions mt-4 mb-8">
+          <Card hover className="bento-card bento-action action-small cursor-pointer" onClick={() => navigate(ROUTES.DOCUMENTS)}>
             <div className="flex items-center gap-3 mb-2">
               <FileText size={20} className="text-[#CF9EFF]" />
               <h3 className="font-semibold text-[#EDE3FF]">Manage Documents</h3>
@@ -168,7 +203,7 @@ const DashboardPage: React.FC = () => {
             </p>
           </Card>
 
-          <Card hover className="bento-card bento-action cursor-pointer" onClick={() => navigate(ROUTES.SEARCH)}>
+          <Card hover className="bento-card bento-action action-small cursor-pointer" onClick={() => navigate(ROUTES.SEARCH)}>
             <div className="flex items-center gap-3 mb-2">
               <Search size={20} className="text-[#CF9EFF]" />
               <h3 className="font-semibold text-[#EDE3FF]">Semantic Search</h3>
@@ -178,7 +213,7 @@ const DashboardPage: React.FC = () => {
             </p>
           </Card>
 
-          <Card hover className="bento-card bento-action cursor-pointer" onClick={() => navigate(ROUTES.CHAT)}>
+          <Card hover className="bento-card bento-action action-small cursor-pointer" onClick={() => navigate(ROUTES.CHAT)}>
             <div className="flex items-center gap-3 mb-2">
               <MessageSquare size={20} className="text-[#A98BFF]" />
               <h3 className="font-semibold text-[#EDE3FF]">AI Chat</h3>

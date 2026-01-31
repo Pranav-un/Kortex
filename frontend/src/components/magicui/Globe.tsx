@@ -14,7 +14,8 @@ export default function Globe({ className = '', config }: GlobeProps) {
   useEffect(() => {
     const wrap = wrapRef.current!;
     const canvas = canvasRef.current!;
-    let phi = 0;
+    let startTs = performance.now();
+    let dragOffset = 0; // accumulated offset from dragging
     let width = wrap.clientWidth;
     let height = wrap.clientHeight;
 
@@ -29,8 +30,6 @@ export default function Globe({ className = '', config }: GlobeProps) {
 
     let pointerDown = false;
     let pointerStartX = 0;
-    let targetPhi = 0;
-    let velocity = 0;
 
     const onPointerDown = (e: PointerEvent) => {
       pointerDown = true;
@@ -41,8 +40,7 @@ export default function Globe({ className = '', config }: GlobeProps) {
       if (!pointerDown) return;
       const delta = e.clientX - pointerStartX;
       pointerStartX = e.clientX;
-      targetPhi += delta / 200;
-      velocity = delta / 6000;
+      dragOffset += delta / 200;
     };
     const onPointerUp = (e: PointerEvent) => {
       pointerDown = false;
@@ -74,12 +72,12 @@ export default function Globe({ className = '', config }: GlobeProps) {
         { location: [51.50, -0.12], size: 0.06 },
       ],
       onRender: (state) => {
-        phi += 0.002 + velocity;
-        velocity *= 0.98;
-        phi += (targetPhi - phi) * 0.04;
+        // Time-based continuous rotation plus drag offset
+        const elapsed = performance.now() - startTs;
+        const auto = (elapsed / 4000) * 2 * Math.PI; // full rotation every ~4s
         state.width = canvas.width;
         state.height = canvas.height;
-        state.phi = phi;
+        state.phi = auto + dragOffset;
       },
       ...(config as any),
     });

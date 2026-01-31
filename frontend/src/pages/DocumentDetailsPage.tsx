@@ -1,8 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  FileText, ArrowLeft, Calendar, FileType, Hash, Tag, 
-  BarChart2, RefreshCw, Trash2, AlertCircle
+import {
+  FileText,
+  ArrowLeft,
+  Calendar,
+  FileType,
+  Hash,
+  Tag,
+  BarChart2,
+  RefreshCw,
+  Trash2,
+  AlertCircle
 } from 'lucide-react';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -12,6 +20,7 @@ import { Modal } from '../components/ui/Modal';
 import { documentService } from '../services/documentService';
 import { ROUTES } from '../config/constants';
 import type { Document } from '../types';
+import './DocumentDetails.css';
 
 export const DocumentDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -100,7 +109,7 @@ export const DocumentDetailsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="min-h-screen bg-[#0D0620] flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -108,11 +117,11 @@ export const DocumentDetailsPage: React.FC = () => {
 
   if (error || !document) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-center">
+      <div className="min-h-screen bg-[#0D0620] flex flex-col items-center justify-center text-center px-6">
         <AlertCircle size={48} className="text-red-500 mb-4" />
-        <h2 className="text-xl font-semibold text-slate-900 mb-2">Error Loading Document</h2>
-        <p className="text-slate-600 mb-4">{error || 'Document not found'}</p>
-        <Button onClick={() => navigate(ROUTES.DOCUMENTS)}>
+        <h2 className="text-xl font-semibold text-[#EDE3FF] mb-2">Error Loading Document</h2>
+        <p className="text-[#CF9EFF] mb-4">{error || 'Document not found'}</p>
+        <Button onClick={() => navigate(ROUTES.DOCUMENTS)} className="border-[#2A1B45] text-[#EDE3FF] hover:bg-[#1A0F2E]">
           <ArrowLeft size={16} />
           Back to Documents
         </Button>
@@ -121,79 +130,81 @@ export const DocumentDetailsPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-[#0D0620] pt-10 px-6">
+      <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button 
-            variant="outline" 
+      <div className="dd-header">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => navigate(ROUTES.DOCUMENTS)}
+            className="border-[#2A1B45] text-[#EDE3FF] hover:bg-[#1A0F2E]"
           >
             <ArrowLeft size={16} />
             Back
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">{document.filename}</h1>
-            <p className="text-sm text-slate-600 mt-1">Document ID: {document.id}</p>
+            <h1 className="dd-title">{document.filename}</h1>
+            <p className="dd-sub">Document ID: {document.id}</p>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
-          {getStatusBadge()}
+        <div className="flex items-center gap-2">
+          <Badge className="bg-[#120A24] text-[#EDE3FF] border border-[#2A1B45]">{getStatusBadge() || 'Uploaded'}</Badge>
         </div>
       </div>
 
       {/* Metadata Card */}
-      <Card>
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Document Information</h2>
+      <Card className="dd-card">
+        <h2 className="dd-section-title mb-4">Document Information</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-start space-x-3">
-            <FileType size={20} className="text-slate-400 mt-0.5" />
+          <div className="dd-meta-item">
+            <FileType size={20} className="text-[#A98BFF] mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-slate-700">File Type</p>
-              <p className="text-sm text-slate-900">{document.fileType.toUpperCase()}</p>
+              <p className="dd-meta-label">File Type</p>
+              <p className="dd-meta-value">{document.fileType.toUpperCase()}</p>
             </div>
           </div>
-          
-          <div className="flex items-start space-x-3">
-            <BarChart2 size={20} className="text-slate-400 mt-0.5" />
+
+          <div className="dd-meta-item">
+            <BarChart2 size={20} className="text-[#A98BFF] mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-slate-700">File Size</p>
-              <p className="text-sm text-slate-900">{formatFileSize(document.size)}</p>
+              <p className="dd-meta-label">File Size</p>
+              <p className="dd-meta-value">{formatFileSize(document.size)}</p>
             </div>
           </div>
-          
-          <div className="flex items-start space-x-3">
-            <Calendar size={20} className="text-slate-400 mt-0.5" />
+
+          <div className="dd-meta-item">
+            <Calendar size={20} className="text-[#A98BFF] mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-slate-700">Uploaded</p>
-              <p className="text-sm text-slate-900">{formatDate(document.uploadTime)}</p>
+              <p className="dd-meta-label">Uploaded</p>
+              <p className="dd-meta-value">{formatDate(document.uploadTime)}</p>
             </div>
           </div>
-          
+
           {document.pageCount && (
-            <div className="flex items-start space-x-3">
-              <FileText size={20} className="text-slate-400 mt-0.5" />
+            <div className="dd-meta-item">
+              <FileText size={20} className="text-[#A98BFF] mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-slate-700">Pages</p>
-                <p className="text-sm text-slate-900">{document.pageCount}</p>
+                <p className="dd-meta-label">Pages</p>
+                <p className="dd-meta-value">{document.pageCount}</p>
               </div>
             </div>
           )}
-          
-          <div className="flex items-start space-x-3">
-            <Hash size={20} className="text-slate-400 mt-0.5" />
+
+          <div className="dd-meta-item">
+            <Hash size={20} className="text-[#A98BFF] mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-slate-700">Embeddings</p>
-              <p className="text-sm text-slate-900">{document.embeddingsGenerated ? 'Yes' : 'No'}</p>
+              <p className="dd-meta-label">Embeddings</p>
+              <p className="dd-meta-value">{document.embeddingsGenerated ? 'Yes' : 'No'}</p>
             </div>
           </div>
-          
-          <div className="flex items-start space-x-3">
-            <BarChart2 size={20} className="text-slate-400 mt-0.5" />
+
+          <div className="dd-meta-item">
+            <BarChart2 size={20} className="text-[#A98BFF] mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-slate-700">Version</p>
-              <p className="text-sm text-slate-900">{document.version}</p>
+              <p className="dd-meta-label">Version</p>
+              <p className="dd-meta-value">{document.version}</p>
             </div>
           </div>
         </div>
@@ -201,19 +212,17 @@ export const DocumentDetailsPage: React.FC = () => {
 
       {/* Tags */}
       {document.tags && document.tags.trim().length > 0 && (
-        <Card>
+        <Card className="dd-card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">Tags</h2>
+            <h2 className="dd-section-title">Tags</h2>
             {document.tagsGeneratedAt && (
-              <p className="text-xs text-slate-500">
-                Generated {formatDate(document.tagsGeneratedAt)}
-              </p>
+              <p className="dd-muted">Generated {formatDate(document.tagsGeneratedAt)}</p>
             )}
           </div>
           <div className="flex flex-wrap gap-2">
             {document.tags.split(',').map((tag: string, index: number) => (
-              <Badge key={index} variant="info">
-                <Tag size={14} />
+              <Badge key={index} className="bg-[#120A24] text-[#EDE3FF] border border-[#2A1B45]">
+                <Tag size={14} className="mr-1" />
                 {tag.trim()}
               </Badge>
             ))}
@@ -223,27 +232,26 @@ export const DocumentDetailsPage: React.FC = () => {
 
       {/* Summary */}
       {document.summary && (
-        <Card>
+        <Card className="dd-card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">AI-Generated Summary</h2>
-            <div className="flex items-center space-x-2">
+            <h2 className="dd-section-title">AI-Generated Summary</h2>
+            <div className="flex items-center gap-2">
               {document.summaryGeneratedAt && (
-                <p className="text-xs text-slate-500">
-                  {formatDate(document.summaryGeneratedAt)}
-                </p>
+                <p className="dd-muted">{formatDate(document.summaryGeneratedAt)}</p>
               )}
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleRegenerateSummary}
                 loading={isRegenerating}
+                className="border-[#2A1B45] text-[#EDE3FF] hover:bg-[#1A0F2E]"
               >
                 <RefreshCw size={14} />
                 Regenerate
               </Button>
             </div>
           </div>
-          <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">
+          <p className="dd-body">
             {document.summary}
           </p>
         </Card>
@@ -251,20 +259,21 @@ export const DocumentDetailsPage: React.FC = () => {
 
       {/* Extracted Text Preview */}
       {document.extractedText && (
-        <Card>
+        <Card className="dd-card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">Extracted Text</h2>
+            <h2 className="dd-section-title">Extracted Text</h2>
             <Button
               variant="outline"
               size="sm"
+              className="border-[#2A1B45] text-[#EDE3FF] hover:bg-[#1A0F2E]"
               onClick={() => setShowExtractedText(!showExtractedText)}
             >
               {showExtractedText ? 'Hide' : 'Show'} Text
             </Button>
           </div>
           {showExtractedText && (
-            <div className="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200 max-h-96 overflow-y-auto">
-              <pre className="text-sm text-slate-700 whitespace-pre-wrap font-mono">
+            <div className="mt-4 p-4 bg-[#120A24] rounded-lg border border-[#2A1B45] max-h-96 overflow-y-auto">
+              <pre className="text-sm text-[#CF9EFF] whitespace-pre-wrap font-mono">
                 {document.extractedText.substring(0, 5000)}
                 {document.extractedText.length > 5000 && '\n\n... (truncated)'}
               </pre>
@@ -274,8 +283,8 @@ export const DocumentDetailsPage: React.FC = () => {
       )}
 
       {/* Actions */}
-      <Card>
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Actions</h2>
+      <Card className="dd-card">
+        <h2 className="dd-section-title mb-4">Actions</h2>
         <div className="flex flex-wrap gap-3">
           {!document.summary && document.textExtractionSuccess && (
             <Button
@@ -287,7 +296,7 @@ export const DocumentDetailsPage: React.FC = () => {
               Generate Summary
             </Button>
           )}
-          
+
           <Button
             variant="danger"
             onClick={() => setShowDeleteModal(true)}
@@ -305,11 +314,11 @@ export const DocumentDetailsPage: React.FC = () => {
         title="Delete Document"
       >
         <div className="space-y-4">
-          <p className="text-slate-700">
+          <p className="text-[#CF9EFF]">
             Are you sure you want to delete <strong>{document.filename}</strong>? This action cannot be undone.
           </p>
           <div className="flex justify-end space-x-3">
-            <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
+            <Button variant="outline" onClick={() => setShowDeleteModal(false)} className="border-[#2A1B45] text-[#EDE3FF] hover:bg-[#1A0F2E]">
               Cancel
             </Button>
             <Button variant="danger" onClick={handleDelete}>
@@ -319,6 +328,7 @@ export const DocumentDetailsPage: React.FC = () => {
           </div>
         </div>
       </Modal>
+      </div>
     </div>
   );
 };

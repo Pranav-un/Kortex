@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Document } from '../types';
 import { documentService } from '../services/documentService';
 import { Card, Button, Badge, LoadingSpinner, Modal } from '../components/ui';
-import { FileText, Upload, Trash2, RefreshCw, CheckCircle, AlertCircle, X } from 'lucide-react';
+import { FileText, Upload, Trash2, RefreshCw, CheckCircle, AlertCircle, X, Search, MessageSquare, BarChart3, LayoutDashboard } from 'lucide-react';
+import Dock from '../components/magicui/Dock';
+import { ROUTES } from '../config/constants';
+import './Documents.css';
 
 const DocumentsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -16,6 +19,14 @@ const DocumentsPage: React.FC = () => {
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  const dockItems = useMemo(() => ([
+    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', onClick: () => navigate(ROUTES.DASHBOARD) },
+    { icon: <FileText size={20} />, label: 'Documents', onClick: () => navigate(ROUTES.DOCUMENTS) },
+    { icon: <Search size={20} />, label: 'Search', onClick: () => navigate(ROUTES.SEARCH) },
+    { icon: <MessageSquare size={20} />, label: 'AI Chat', onClick: () => navigate(ROUTES.CHAT) },
+    { icon: <BarChart3 size={20} />, label: 'Analytics', onClick: () => navigate(ROUTES.ANALYTICS) },
+  ]), [navigate]);
 
   const loadDocuments = async () => {
     setLoading(true);
@@ -112,28 +123,45 @@ const DocumentsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Documents</h1>
-          <p className="text-slate-600">Upload and manage your document collection</p>
+    <div className="min-h-screen bg-[#0D0620] pt-28 px-6">
+      <Dock items={dockItems} panelHeight={68} baseItemSize={50} magnification={70} />
+      <div className="max-w-6xl mx-auto">
+        <div className="doc-header mb-6">
+          <div>
+            <h1 className="doc-title">Documents</h1>
+            <p className="doc-sub">Upload and manage your document collection</p>
+          </div>
+          <div className="doc-stats">
+            <div className="stat">
+              <span className="stat-label">Total</span>
+              <span className="stat-value">{documents.length}</span>
+            </div>
+            <div className="stat">
+              <span className="stat-label">Indexed</span>
+              <span className="stat-value">{documents.filter(d => d.embeddingsGenerated).length}</span>
+            </div>
+            <div className="stat">
+              <span className="stat-label">Summarized</span>
+              <span className="stat-value">{documents.filter(d => !!d.summary).length}</span>
+            </div>
+          </div>
         </div>
 
         {/* Upload Card */}
-        <Card className="mb-6">
+        <Card className="doc-card mb-6">
           <div className="flex items-center gap-3 mb-4">
-            <Upload size={24} className="text-slate-700" />
-            <h2 className="text-lg font-semibold text-slate-900">Upload Document</h2>
+            <Upload size={20} className="text-[#CF9EFF]" />
+            <h2 className="doc-card-title">Upload Document</h2>
           </div>
           
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <label className="flex-1">
+              <label className="flex-1" id="file-input">
                 <input
                   type="file"
                   onChange={handleFileSelect}
                   accept=".pdf,.docx,.doc,.txt"
-                  className="block w-full text-sm text-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer"
+                  className="doc-file-input"
                 />
               </label>
               <Button
@@ -159,40 +187,40 @@ const DocumentsPage: React.FC = () => {
             
             {uploading && (
               <div className="space-y-2">
-                <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                <div className="doc-progress">
                   <div
-                    className="h-full bg-slate-900 transition-all duration-300"
+                    className="doc-progress-bar"
                     style={{ width: `${uploadProgress}%` }}
                   />
                 </div>
-                <p className="text-sm text-slate-600">Uploading: {uploadProgress}%</p>
+                <p className="text-sm text-[#CF9EFF]">Uploading: {uploadProgress}%</p>
               </div>
             )}
             
             {file && !uploading && (
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-[#CF9EFF]">
                 Selected: {file.name} ({formatFileSize(file.size)})
               </p>
             )}
           </div>
           
           {error && (
-            <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-start gap-2">
-              <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
+            <div className="doc-error">
+              <AlertCircle size={16} className="flex-shrink-0 mt-0.5 text-[#CF9EFF]" />
               {error}
             </div>
           )}
           
-          <p className="mt-4 text-xs text-slate-500">
+          <p className="mt-4 text-xs text-[#CF9EFF]">
             Supported formats: PDF, DOCX, DOC, TXT · Max size: 50MB
           </p>
         </Card>
 
         {/* Documents List */}
-        <Card>
+        <Card className="doc-card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">Your Documents</h2>
-            <Badge>{documents.length} {documents.length === 1 ? 'document' : 'documents'}</Badge>
+            <h2 className="doc-card-title">Your Documents</h2>
+            <Badge className="bg-[#120A24] text-[#EDE3FF] border border-[#2A1B45]">{documents.length} {documents.length === 1 ? 'document' : 'documents'}</Badge>
           </div>
 
           {loading ? (
@@ -201,55 +229,55 @@ const DocumentsPage: React.FC = () => {
             </div>
           ) : documents.length === 0 ? (
             <div className="text-center py-12">
-              <FileText size={48} className="text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-600 mb-2">No documents yet</p>
-              <p className="text-sm text-slate-500">Upload your first document to get started</p>
+              <FileText size={48} className="text-[#A98BFF] mx-auto mb-3" />
+              <p className="text-[#CF9EFF] mb-2">No documents yet</p>
+              <p className="text-sm text-[#CF9EFF]">Upload your first document to get started</p>
             </div>
           ) : (
             <div className="space-y-3">
               {documents.map((doc) => (
                 <div
                   key={doc.id}
-                  className="flex items-start gap-4 p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
+                  className="flex items-start gap-4 p-4 rounded-lg border border-[#2A1B45] hover:bg-[#120A24] transition-colors cursor-pointer"
                   onClick={() => navigate(`/documents/${doc.id}`)}
                 >
-                  <FileText size={20} className="text-slate-600 flex-shrink-0 mt-1" />
+                  <FileText size={20} className="text-[#CF9EFF] flex-shrink-0 mt-1" />
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-slate-900 truncate mb-1 hover:text-slate-700">
+                        <h3 className="font-medium text-[#EDE3FF] truncate mb-1">
                           {doc.filename}
                         </h3>
-                        <div className="flex items-center gap-3 text-sm text-slate-600">
+                        <div className="flex items-center gap-3 text-sm text-[#CF9EFF]">
                           <span>{formatFileSize(doc.size)}</span>
                           <span>·</span>
                           <span>{new Date(doc.uploadTime).toLocaleDateString()}</span>
                           {doc.version && doc.version > 1 && (
                             <>
                               <span>·</span>
-                              <Badge variant="info" size="sm">v{doc.version}</Badge>
+                              <Badge variant="info" size="sm" className="bg-[#120A24] text-[#EDE3FF] border border-[#2A1B45]">v{doc.version}</Badge>
                             </>
                           )}
                         </div>
                       </div>
-                      <Badge variant="default" size="sm">{doc.fileType}</Badge>
+                      <Badge variant="default" size="sm" className="bg-[#120A24] text-[#EDE3FF] border border-[#2A1B45]">{doc.fileType}</Badge>
                     </div>
                     
                     <div className="flex items-center gap-2 mb-3">
                       {doc.embeddingsGenerated ? (
-                        <Badge variant="success" size="sm">
+                        <Badge variant="success" size="sm" className="bg-[#120A24] text-[#EDE3FF] border border-[#2A1B45]">
                           <CheckCircle size={12} className="mr-1" />
                           Indexed
                         </Badge>
                       ) : (
-                        <Badge variant="warning" size="sm">
+                        <Badge variant="warning" size="sm" className="bg-[#120A24] text-[#EDE3FF] border border-[#2A1B45]">
                           <AlertCircle size={12} className="mr-1" />
                           Processing
                         </Badge>
                       )}
                       {doc.summary && (
-                        <Badge variant="info" size="sm">
+                        <Badge variant="info" size="sm" className="bg-[#120A24] text-[#EDE3FF] border border-[#2A1B45]">
                           <CheckCircle size={12} className="mr-1" />
                           Summarized
                         </Badge>
@@ -302,7 +330,7 @@ const DocumentsPage: React.FC = () => {
           </>
         }
       >
-        <p className="text-slate-700">
+        <p className="text-[#CF9EFF]">
           Are you sure you want to delete <strong>{selectedDoc?.filename}</strong>? This action cannot be undone.
         </p>
       </Modal>

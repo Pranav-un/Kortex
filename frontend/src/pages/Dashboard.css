@@ -144,7 +144,7 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(207, 158, 255, 0.12);
 }
 .globe-card .bento-title{
-  font-size: 28px;
+  font-size: 24px;
   line-height: 1.1;
   font-weight: 800;
   text-align: center;
@@ -157,19 +157,24 @@
 }
 .globe-card .bento-body{ padding: .5rem .5rem .75rem; }
 /* Let the globe use its own aspect ratio sizing; keep a local cap for this card */
-.globe-card .globe-wrap{ max-height: 320px; }
+.globe-card .globe-wrap{ max-height: 280px; }
 .globe-card .bento-desc{ display:none; }
 /* Inner glow ring removed for a cleaner look */
 
 /* Metrics overview grid to match globe height */
-.metrics-card{ min-height: 320px; display:flex; }
-.metrics-card .bento-body{ flex:1; display:flex; flex-direction:column; }
-.metrics-card .bento-header{ margin-bottom:.5rem; }
-.metrics-card .bento-title{ font-size: 16px; font-weight: 700; color: var(--lilac); }
-.metrics-grid{ flex:1; display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); grid-auto-rows: 1fr; gap: 1rem; }
+.metrics-grid-standalone{ min-height: 240px; display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); grid-auto-rows: 1fr; gap: .9rem; }
 /* Compact tile padding to save vertical space */
-.metric-tile{ background-color: var(--violet-dark); border:1px solid var(--violet-border); border-radius: .75rem; padding: .75rem; display:flex; align-items:center; height:100%; }
-.metric-progress{ width:100%; height:4px; border-radius:9999px; background: rgba(42,27,69,0.7); margin-top:.5rem; overflow:hidden; }
+.metric-tile{ background-color: var(--violet-dark); border:1px solid var(--violet-border); border-radius: .75rem; padding: .6rem; display:flex; flex-direction: column; align-items: stretch; height:100%; }
+.metric-header{ display:flex; align-items:center; gap:.6rem; margin-bottom:.4rem; }
+.metric-title{ color: var(--lilac-soft); font-weight: 600; }
+.metric-value{ color: var(--lilac-soft); font-weight: 800; font-size: 22px; line-height: 1; }
+.metric-bar-wrap{ width:100%; height:3px; border-radius:9999px; background: rgba(42,27,69,0.7); overflow:hidden; margin: .5rem 0 .35rem; }
+.metric-subtext{ font-size: 12px; color: var(--lilac); margin-top:.35rem; }
+.metric-foot{ font-size: 11px; color: var(--lilac); opacity: 0.8; margin-top:.25rem; }
+.metric-progress{ width:100%; height:3px; border-radius:9999px; background: rgba(42,27,69,0.7); margin-top:.4rem; overflow:hidden; }
+
+/* Compact action cards height */
+.action-small{ min-height: 120px; }
 .metric-bar{ height:100%; background: linear-gradient(90deg, #7A5CF5, #CF9EFF); box-shadow: 0 0 8px rgba(207,158,255,0.6); }
 
 @media (max-width: 768px){

@@ -1,0 +1,15 @@
+:root{
+  --violet-deep:#0D0620;
+  --violet-dark:#0A0316;
+  --violet-border:#2A1B45;
+  --lilac:#CF9EFF;
+  --lilac-soft:#EDE3FF;
+}
+.chat-header{ display:flex; align-items:flex-end; justify-content:space-between; }
+.page-title{ color:var(--lilac-soft); font-weight:800; font-size:26px; }
+.page-sub{ color:var(--lilac); font-size:14px; }
+.page-card{ background-color:var(--violet-dark)!important; border:1px solid var(--violet-border)!important; }
+.page-section-title{ color:var(--lilac-soft); font-weight:600; }
+.page-select{ display:block; width:100%; padding:.5rem .75rem; background-color:var(--violet-deep); color:var(--lilac-soft); border:1px solid var(--violet-border); border-radius:.5rem; font-size:14px; }
+.page-select:focus{ outline:none; border-color:#3a2a65; box-shadow:0 0 0 2px rgba(207,158,255,.3); }
+.page-error{ background:#1a102f; border:1px solid var(--violet-border); color:var(--lilac-soft); padding:.75rem; border-radius:.75rem; display:flex; gap:.5rem; align-items:flex-start; font-size:14px; }
