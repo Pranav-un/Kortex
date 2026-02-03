@@ -3,13 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import type { Document } from '../types';
 import { documentService } from '../services/documentService';
 import { Card, Button, Badge, LoadingSpinner, Modal } from '../components/ui';
-import { FileText, Upload, Trash2, RefreshCw, CheckCircle, AlertCircle, X, Search, MessageSquare, BarChart3, LayoutDashboard } from 'lucide-react';
+import { FileText, Upload, Trash2, RefreshCw, CheckCircle, AlertCircle, X, Search, MessageSquare, BarChart3, LayoutDashboard, User as UserIcon, LogOut } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import Dock from '../components/magicui/Dock';
 import { ROUTES } from '../config/constants';
 import './Documents.css';
+import { useNotifications } from '../contexts/NotificationContext';
 
 const DocumentsPage: React.FC = () => {
   const navigate = useNavigate();
+  const { addToast } = useNotifications();
+  const { logout } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -26,7 +30,9 @@ const DocumentsPage: React.FC = () => {
     { icon: <Search size={20} />, label: 'Search', onClick: () => navigate(ROUTES.SEARCH) },
     { icon: <MessageSquare size={20} />, label: 'AI Chat', onClick: () => navigate(ROUTES.CHAT) },
     { icon: <BarChart3 size={20} />, label: 'Analytics', onClick: () => navigate(ROUTES.ANALYTICS) },
-  ]), [navigate]);
+    { icon: <UserIcon size={20} />, label: 'Profile', onClick: () => navigate(ROUTES.PROFILE) },
+    { icon: <LogOut size={20} />, label: 'Logout', onClick: () => logout() },
+  ]), [navigate, logout]);
 
   const loadDocuments = async () => {
     setLoading(true);
@@ -69,14 +75,16 @@ const DocumentsPage: React.FC = () => {
     setError('');
     setUploadProgress(0);
     try {
-      await documentService.uploadDocument(file, (p) => setUploadProgress(p));
+      const resp = await documentService.uploadDocument(file, (p) => setUploadProgress(p));
       setFile(null);
       // Reset file input
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
       await loadDocuments();
+      addToast({ type: 'success', message: `Upload complete: ${resp.filename}${resp.version && resp.version > 1 ? ` (v${resp.version})` : ''}` });
     } catch (e: any) {
       setError(e?.response?.data?.message || 'Upload failed');
+      addToast({ type: 'error', message: 'Upload failed. Please try again.' });
     } finally {
       setUploading(false);
       setUploadProgress(0);
@@ -120,6 +128,16 @@ const DocumentsPage: React.FC = () => {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  const formatFileType = (type: string) => {
+    if (!type) return '';
+    const lower = type.toLowerCase();
+    if (lower.includes('pdf')) return 'PDF';
+    if (lower.includes('docx') || lower.includes('msword') || lower.includes('word') || lower.includes('doc')) return 'DOCX';
+    if (lower.includes('text') || lower.includes('plain') || lower.includes('txt')) return 'TXT';
+    const ext = lower.split('/').pop();
+    return (ext || type).toUpperCase();
   };
 
   return (
@@ -224,9 +242,7 @@ const DocumentsPage: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className="py-12">
-              <LoadingSpinner size="lg" />
-            </div>
+            <div className="py-12"><LoadingSpinner size="lg" /></div>
           ) : documents.length === 0 ? (
             <div className="text-center py-12">
               <FileText size={48} className="text-[#A98BFF] mx-auto mb-3" />
@@ -234,74 +250,48 @@ const DocumentsPage: React.FC = () => {
               <p className="text-sm text-[#CF9EFF]">Upload your first document to get started</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="doc-grid">
               {documents.map((doc) => (
-                <div
-                  key={doc.id}
-                  className="flex items-start gap-4 p-4 rounded-lg border border-[#2A1B45] hover:bg-[#120A24] transition-colors cursor-pointer"
-                  onClick={() => navigate(`/documents/${doc.id}`)}
-                >
-                  <FileText size={20} className="text-[#CF9EFF] flex-shrink-0 mt-1" />
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-[#EDE3FF] truncate mb-1">
-                          {doc.filename}
-                        </h3>
-                        <div className="flex items-center gap-3 text-sm text-[#CF9EFF]">
-                          <span>{formatFileSize(doc.size)}</span>
-                          <span>·</span>
-                          <span>{new Date(doc.uploadTime).toLocaleDateString()}</span>
-                          {doc.version && doc.version > 1 && (
-                            <>
-                              <span>·</span>
-                              <Badge variant="info" size="sm" className="bg-[#120A24] text-[#EDE3FF] border border-[#2A1B45]">v{doc.version}</Badge>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      <Badge variant="default" size="sm" className="bg-[#120A24] text-[#EDE3FF] border border-[#2A1B45]">{doc.fileType}</Badge>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 mb-3">
-                      {doc.embeddingsGenerated ? (
-                        <Badge variant="success" size="sm" className="bg-[#120A24] text-[#EDE3FF] border border-[#2A1B45]">
-                          <CheckCircle size={12} className="mr-1" />
-                          Indexed
-                        </Badge>
-                      ) : (
-                        <Badge variant="warning" size="sm" className="bg-[#120A24] text-[#EDE3FF] border border-[#2A1B45]">
-                          <AlertCircle size={12} className="mr-1" />
-                          Processing
-                        </Badge>
-                      )}
-                      {doc.summary && (
-                        <Badge variant="info" size="sm" className="bg-[#120A24] text-[#EDE3FF] border border-[#2A1B45]">
-                          <CheckCircle size={12} className="mr-1" />
-                          Summarized
-                        </Badge>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleRegenerateSummary(doc.id)}
-                      >
-                        <RefreshCw size={14} className="mr-1" />
-                        Regenerate Summary
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="danger"
-                        onClick={() => confirmDelete(doc)}
-                      >
-                        <Trash2 size={14} className="mr-1" />
-                        Delete
-                      </Button>
-                    </div>
+                <div key={doc.id} className="doc-tile" onClick={() => navigate(`/documents/${doc.id}`)}>
+                  <div className="doc-tile-header">
+                    <FileText size={18} className="text-[#CF9EFF]" />
+                    <div className="doc-tile-title truncate">{doc.filename}</div>
+                    <Badge size="sm" className="doc-type-badge">{formatFileType(doc.fileType)}</Badge>
+                  </div>
+                  <div className="doc-tile-meta">
+                    <span>{formatFileSize(doc.size)}</span>
+                    <span>·</span>
+                    <span>{new Date(doc.uploadTime).toLocaleDateString()}</span>
+                    {doc.version && doc.version > 1 && (
+                      <>
+                        <span>·</span>
+                        <Badge size="sm" className="doc-type-badge">v{doc.version}</Badge>
+                      </>
+                    )}
+                  </div>
+                  <div className="doc-tile-badges">
+                    {doc.embeddingsGenerated ? (
+                      <Badge size="sm" className="badge-summarized">
+                        <CheckCircle size={12} className="mr-1" /> Indexed
+                      </Badge>
+                    ) : (
+                      <Badge size="sm" className="badge-processing">
+                        <AlertCircle size={12} className="mr-1" /> Processing
+                      </Badge>
+                    )}
+                    {doc.summary && (
+                      <Badge size="sm" className="badge-summarized">
+                        <CheckCircle size={12} className="mr-1" /> Summarized
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="doc-tile-actions" onClick={(e) => e.stopPropagation()}>
+                    <Button size="sm" variant="outline" className="btn-regen" onClick={() => handleRegenerateSummary(doc.id)}>
+                      <RefreshCw size={14} className="mr-1" /> Regenerate Summary
+                    </Button>
+                    <Button size="sm" variant="outline" className="btn-delete" onClick={() => confirmDelete(doc)}>
+                      <Trash2 size={14} className="mr-1" /> Delete
+                    </Button>
                   </div>
                 </div>
               ))}

@@ -4,23 +4,22 @@ import type { Document, AnalyticsOverview } from '../types';
 import { documentService } from '../services/documentService';
 import { analyticsService } from '../services/analyticsService';
 import { Card, Badge, LoadingSpinner } from '../components/ui';
-import { FileText, Search, MessageSquare, BarChart3, CheckCircle, AlertCircle, LayoutDashboard } from 'lucide-react';
+import { FileText, Search, MessageSquare, BarChart3, CheckCircle, AlertCircle, LayoutDashboard, User as UserIcon, LogOut } from 'lucide-react';
 import { ROUTES } from '../config/constants';
 import Dock from '../components/magicui/Dock';
 import './Dashboard.css';
 import { BentoGrid, BentoCard } from '../components/magicui/BentoGrid';
 import Globe from '../components/magicui/Globe';
-import AnimatedList from '../components/magicui/AnimatedList';
-import NotificationCard from '../components/magicui/NotificationCard';
+import { useNotifications } from '../contexts/NotificationContext';
 import { useAuth } from '../contexts/AuthContext';
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showWelcome, setShowWelcome] = useState(true);
+  const { addToast } = useNotifications();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,11 +41,9 @@ const DashboardPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Show welcome notification for 10 seconds after entering dashboard
-    setShowWelcome(true);
-    const t = setTimeout(() => setShowWelcome(false), 10000);
-    return () => clearTimeout(t);
-  }, []);
+    // Show welcome via toast when entering dashboard
+    addToast({ type: 'info', message: `Welcome, ${user?.name || 'User'} — You’re all set — enjoy Kortex!` });
+  }, [addToast, user?.name]);
 
   const dockItems = useMemo(() => ([
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard', onClick: () => navigate(ROUTES.DASHBOARD) },
@@ -54,7 +51,9 @@ const DashboardPage: React.FC = () => {
     { icon: <Search size={20} />, label: 'Search', onClick: () => navigate(ROUTES.SEARCH) },
     { icon: <MessageSquare size={20} />, label: 'AI Chat', onClick: () => navigate(ROUTES.CHAT) },
     { icon: <BarChart3 size={20} />, label: 'Analytics', onClick: () => navigate(ROUTES.ANALYTICS) },
-  ]), [navigate]);
+    { icon: <UserIcon size={20} />, label: 'Profile', onClick: () => navigate(ROUTES.PROFILE) },
+    { icon: <LogOut size={20} />, label: 'Logout', onClick: () => logout() },
+  ]), [navigate, logout]);
 
   if (loading) {
     return (
@@ -90,19 +89,7 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#0D0620] pt-28 px-6">
       <Dock items={dockItems} panelHeight={68} baseItemSize={50} magnification={70} />
-      {showWelcome && (
-        <div className="fixed top-24 left-0 right-0 z-50 flex justify-center px-4">
-          <AnimatedList>
-            <NotificationCard
-              name={`Welcome, ${user?.name || 'User'}`}
-              description="You’re all set — enjoy Kortex!"
-              time="Just now"
-              icon="👋"
-              color="#7A5CF5"
-            />
-          </AnimatedList>
-        </div>
-      )}
+      {/* Welcome toast handled via NotificationProvider/ToastContainer */}
       <div className="max-w-5xl mx-auto">
         <BentoGrid>
           {/* Overview metrics (standalone grid, no outer box) */}

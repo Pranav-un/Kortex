@@ -16,6 +16,7 @@ import { DocumentDetailsPage } from './pages/DocumentDetailsPage';
 import SearchPage from './pages/SearchPage';
 import ChatPage from './pages/ChatPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import ProfilePage from './pages/ProfilePage';
 import AdminPage from './pages/AdminPage';
 
 function App() {
@@ -80,6 +81,17 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path={ROUTES.PROFILE}
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ProfilePage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path={ROUTES.ANALYTICS}
               element={

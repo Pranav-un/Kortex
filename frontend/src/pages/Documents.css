@@ -25,3 +25,24 @@
 .doc-progress-bar{ height:100%; background: linear-gradient(90deg,#7A5CF5,#CF9EFF); box-shadow:0 0 10px rgba(207,158,255,.6); }
 
 .doc-error{ margin-top:1rem; background:#1a102f; border:1px solid var(--violet-border); color:var(--lilac-soft); padding:.75rem; border-radius:.75rem; display:flex; gap:.5rem; align-items:flex-start; font-size:14px; }
+
+/* Grid layout for uniform document tiles */
+.doc-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem; }
+.doc-tile{ background-color:#120A24; border:1px solid var(--violet-border); border-radius:.75rem; padding:1rem; display:flex; flex-direction:column; gap:.5rem; height:220px; cursor:pointer; transition:background-color .2s ease, border-color .2s ease; }
+.doc-tile:hover{ background-color:#150D2B; border-color:#3A2A65; }
+.doc-tile-header{ display:flex; align-items:center; gap:.5rem; }
+.doc-tile-title{ color:var(--lilac-soft); font-weight:600; font-size:14px; flex:1; min-width:0; }
+.doc-type-badge{ background:#0F0821; color:var(--lilac-soft); border:1px solid var(--violet-border); }
+.doc-tile-meta{ display:flex; align-items:center; gap:.5rem; color:var(--lilac); font-size:12px; }
+.doc-tile-badges{ display:flex; align-items:center; gap:.5rem; margin-top:.25rem; }
+.doc-tile-actions{ margin-top:auto; display:flex; align-items:center; gap:.5rem; }
+
+/* Themed status badges */
+.badge-processing{ background:#1A102F; color:#A98BFF; border:1px solid var(--violet-border); }
+.badge-summarized{ background:#1A102F; color:#CF9EFF; border:1px solid var(--violet-border); }
+
+/* Themed action buttons */
+.btn-regen{ background:#0F0821; color:var(--lilac-soft); border:1px solid var(--violet-border); }
+.btn-regen:hover{ background:#150D2B; }
+.btn-delete{ background:#1A102F; color:#E7D9FF; border:1px solid #3A2A65; }
+.btn-delete:hover{ background:#23123A; }

@@ -4,20 +4,26 @@ import type { SearchResponse, SearchResult, Document } from '../types';
 import { searchService } from '../services/searchService';
 import { documentService } from '../services/documentService';
 import { Card, Button, Input, LoadingSpinner, Badge } from '../components/ui';
-import { Search as SearchIcon, FileText, AlertCircle, MessageSquare, BarChart3, LayoutDashboard } from 'lucide-react';
+import { Search as SearchIcon, FileText, AlertCircle, MessageSquare, BarChart3, LayoutDashboard, User as UserIcon, LogOut } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import Dock from '../components/magicui/Dock';
 import { ROUTES } from '../config/constants';
 import './Search.css';
+import { useNotifications } from '../contexts/NotificationContext';
 
 const SearchPage: React.FC = () => {
   const navigate = useNavigate();
+  const { addToast } = useNotifications();
+  const { logout } = useAuth();
   const dockItems = useMemo(() => ([
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard', onClick: () => navigate(ROUTES.DASHBOARD) },
     { icon: <FileText size={20} />, label: 'Documents', onClick: () => navigate(ROUTES.DOCUMENTS) },
     { icon: <SearchIcon size={20} />, label: 'Search', onClick: () => navigate(ROUTES.SEARCH) },
     { icon: <MessageSquare size={20} />, label: 'AI Chat', onClick: () => navigate(ROUTES.CHAT) },
     { icon: <BarChart3 size={20} />, label: 'Analytics', onClick: () => navigate(ROUTES.ANALYTICS) },
-  ]), [navigate]);
+    { icon: <UserIcon size={20} />, label: 'Profile', onClick: () => navigate(ROUTES.PROFILE) },
+    { icon: <LogOut size={20} />, label: 'Logout', onClick: () => logout() },
+  ]), [navigate, logout]);
   const [query, setQuery] = useState('');
   const [limit, setLimit] = useState(10);
   const [documentId, setDocumentId] = useState<number | undefined>(undefined);
@@ -41,9 +47,11 @@ const SearchPage: React.FC = () => {
     try {
       const resp: SearchResponse = await searchService.search(query, limit, documentId);
       setResults(resp.results || []);
+      addToast({ type: 'info', message: `Search complete: ${resp.results?.length || 0} result(s)` });
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Search failed');
       setResults([]);
+      addToast({ type: 'error', message: 'Search failed. Check your connection or query.' });
     } finally {
       setLoading(false);
     }

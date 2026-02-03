@@ -3,25 +3,51 @@ import { useNavigate } from 'react-router-dom';
 import type { AnalyticsOverview, UploadStatistics, RecentActivity } from '../types';
 import { analyticsService } from '../services/analyticsService';
 import { Card, Badge, LoadingSpinner } from '../components/ui';
-import { BarChart3, FileText, TrendingUp, Activity, MessageSquare, Search as SearchIcon, LayoutDashboard } from 'lucide-react';
+import { BarChart3, FileText, TrendingUp, Activity, MessageSquare, Search as SearchIcon, LayoutDashboard, User as UserIcon, LogOut } from 'lucide-react';
 import Dock from '../components/magicui/Dock';
 import { ROUTES } from '../config/constants';
 import './Analytics.css';
+import { useAuth } from '../contexts/AuthContext';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from 'recharts';
 
 const AnalyticsPage: React.FC = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const dockItems = useMemo(() => ([
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard', onClick: () => navigate(ROUTES.DASHBOARD) },
     { icon: <FileText size={20} />, label: 'Documents', onClick: () => navigate(ROUTES.DOCUMENTS) },
     { icon: <SearchIcon size={20} />, label: 'Search', onClick: () => navigate(ROUTES.SEARCH) },
     { icon: <MessageSquare size={20} />, label: 'AI Chat', onClick: () => navigate(ROUTES.CHAT) },
     { icon: <BarChart3 size={20} />, label: 'Analytics', onClick: () => navigate(ROUTES.ANALYTICS) },
-  ]), [navigate]);
+    { icon: <UserIcon size={20} />, label: 'Profile', onClick: () => navigate(ROUTES.PROFILE) },
+    { icon: <LogOut size={20} />, label: 'Logout', onClick: () => logout() },
+  ]), [navigate, logout]);
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
   const [keywords, setKeywords] = useState<{ keyword: string; documentCount: number; frequencyPercentage: number }[]>([]);
   const [uploads, setUploads] = useState<UploadStatistics | null>(null);
   const [activity, setActivity] = useState<RecentActivity | null>(null);
   const [loading, setLoading] = useState(true);
+  const chartColors = {
+    accent: '#CF9EFF',
+    accent2: '#A98BFF',
+    grid: '#2A1B45',
+    text: '#EDE3FF',
+    secondaryText: '#CF9EFF',
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,7 +88,6 @@ const AnalyticsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Overview cards */}
         {overview && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card className="page-card">
@@ -112,8 +137,97 @@ const AnalyticsPage: React.FC = () => {
           </div>
         )}
 
+        {/* Charts Top */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <Card className="page-card">
+            <h2 className="page-section-title mb-4">Uploads Over Time</h2>
+            {uploads?.uploadsByDate?.length ? (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={uploads.uploadsByDate.map(d => ({
+                      date: new Date(d.date).toLocaleDateString(),
+                      count: d.count,
+                    }))}
+                    margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid stroke={chartColors.grid} strokeDasharray="3 3" />
+                    <XAxis dataKey="date" tick={{ fill: chartColors.secondaryText }} />
+                    <YAxis tick={{ fill: chartColors.secondaryText }} />
+                    <Tooltip contentStyle={{ background: '#120A24', border: '1px solid #2A1B45' }}
+                             labelStyle={{ color: chartColors.text }}
+                             itemStyle={{ color: chartColors.secondaryText }} />
+                    <Line type="monotone" dataKey="count" stroke={chartColors.accent} strokeWidth={2} dot={{ r: 2 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <p className="text-[#CF9EFF] text-center py-8">No time-series upload data</p>
+            )}
+          </Card>
+
+          <Card className="page-card">
+            <h2 className="page-section-title mb-4">File Types</h2>
+            {(uploads?.fileTypeStats?.length || overview?.fileTypeDistribution) ? (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={(uploads?.fileTypeStats?.length ? uploads.fileTypeStats.map(s => ({
+                      name: s.fileType,
+                      count: s.count,
+                    })) : Object.entries(overview?.fileTypeDistribution || {}).map(([name, count]) => ({ name, count })))}
+                    margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid stroke={chartColors.grid} strokeDasharray="3 3" />
+                    <XAxis dataKey="name" tick={{ fill: chartColors.secondaryText }} />
+                    <YAxis tick={{ fill: chartColors.secondaryText }} />
+                    <Tooltip contentStyle={{ background: '#120A24', border: '1px solid #2A1B45' }}
+                             labelStyle={{ color: chartColors.text }}
+                             itemStyle={{ color: chartColors.secondaryText }} />
+                    <Bar dataKey="count" fill={chartColors.accent} radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <p className="text-[#CF9EFF] text-center py-8">No file type stats</p>
+            )}
+          </Card>
+        </div>
+
+        {overview?.fileTypeDistribution && (
+          <div className="grid grid-cols-1 gap-6 mb-8">
+            <Card className="page-card">
+              <h2 className="page-section-title mb-4">File Type Distribution</h2>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={Object.entries(overview.fileTypeDistribution).map(([name, value]) => ({ name, value }))}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={50}
+                      outerRadius={90}
+                      paddingAngle={3}
+                    >
+                      {Object.entries(overview.fileTypeDistribution).map(([name], index) => (
+                        <Cell key={`cell-${name}`}
+                              fill={index % 2 === 0 ? chartColors.accent : chartColors.accent2} />
+                      ))}
+                    </Pie>
+                    <Legend formatter={(value) => (
+                      <span style={{ color: chartColors.secondaryText }}>{value}</span>
+                    )} />
+                    <Tooltip contentStyle={{ background: '#120A24', border: '1px solid #2A1B45' }}
+                             labelStyle={{ color: chartColors.text }}
+                             itemStyle={{ color: chartColors.secondaryText }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Keywords */}
           <Card className="page-card">
             <h2 className="page-section-title mb-4">Top Keywords</h2>
             {keywords.length ? (
@@ -133,7 +247,6 @@ const AnalyticsPage: React.FC = () => {
             )}
           </Card>
 
-          {/* Upload Statistics */}
           <div className="space-y-6">
             <Card className="page-card">
               <h2 className="page-section-title mb-4">Upload Statistics</h2>
@@ -153,7 +266,6 @@ const AnalyticsPage: React.FC = () => {
               )}
             </Card>
 
-            {/* Recent Activity */}
             <Card className="page-card">
               <h2 className="page-section-title mb-4">Recent Activity</h2>
               {activity?.recentUploads?.length ? (
