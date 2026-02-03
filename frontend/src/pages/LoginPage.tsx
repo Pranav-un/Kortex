@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { authService } from '../services/authService';
 import { ROUTES } from '../config/constants';
 import { Button, Input } from '../components/ui';
 import LightPillar from '../components/magicui/LightPillar';
@@ -20,7 +21,9 @@ const LoginPage: React.FC = () => {
 
     try {
       await login({ email, password });
-      navigate(ROUTES.DASHBOARD);
+      // Redirect admins to Admin page, others to Dashboard
+      const isAdmin = authService.isAdmin();
+      navigate(isAdmin ? ROUTES.ADMIN : ROUTES.DASHBOARD);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {

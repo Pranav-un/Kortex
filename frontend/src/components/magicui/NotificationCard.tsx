@@ -3,8 +3,8 @@ import './Notification.css';
 type Item = {
   name: string;
   description: string;
-  icon: string;
-  color: string;
+  icon?: string;
+  color?: string;
   time: string;
 };
 
@@ -12,9 +12,11 @@ export default function NotificationCard({ name, description, icon, color, time 
   return (
     <figure className="notif-card">
       <div className="notif-row">
-        <div className="notif-icon" style={{ backgroundColor: color }}>
-          <span className="notif-emoji">{icon}</span>
-        </div>
+        {icon && (
+          <div className="notif-icon" style={{ backgroundColor: color ?? '#7A5CF5' }}>
+            <span className="notif-emoji">{icon}</span>
+          </div>
+        )}
         <div className="notif-content">
           <figcaption className="notif-title">
             <span className="notif-name">{name}</span>

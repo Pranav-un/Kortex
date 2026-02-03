@@ -4,20 +4,26 @@ import type { QuestionResponse, Document } from '../types';
 import { searchService } from '../services/searchService';
 import { documentService } from '../services/documentService';
 import { Card, Button, Input, LoadingSpinner, Badge } from '../components/ui';
-import { MessageSquare, Send, FileText, AlertCircle, Info, Search as SearchIcon, BarChart3, LayoutDashboard } from 'lucide-react';
+import { MessageSquare, Send, FileText, AlertCircle, Info, Search as SearchIcon, BarChart3, LayoutDashboard, User as UserIcon, LogOut } from 'lucide-react';
 import Dock from '../components/magicui/Dock';
 import { ROUTES } from '../config/constants';
 import './Chat.css';
+import { useNotifications } from '../contexts/NotificationContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const ChatPage: React.FC = () => {
   const navigate = useNavigate();
+  const { addToast } = useNotifications();
+  const { logout } = useAuth();
   const dockItems = useMemo(() => ([
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard', onClick: () => navigate(ROUTES.DASHBOARD) },
     { icon: <FileText size={20} />, label: 'Documents', onClick: () => navigate(ROUTES.DOCUMENTS) },
     { icon: <SearchIcon size={20} />, label: 'Search', onClick: () => navigate(ROUTES.SEARCH) },
     { icon: <MessageSquare size={20} />, label: 'AI Chat', onClick: () => navigate(ROUTES.CHAT) },
     { icon: <BarChart3 size={20} />, label: 'Analytics', onClick: () => navigate(ROUTES.ANALYTICS) },
-  ]), [navigate]);
+    { icon: <UserIcon size={20} />, label: 'Profile', onClick: () => navigate(ROUTES.PROFILE) },
+    { icon: <LogOut size={20} />, label: 'Logout', onClick: () => logout() },
+  ]), [navigate, logout]);
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState<QuestionResponse | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -39,8 +45,10 @@ const ChatPage: React.FC = () => {
     try {
       const resp = await searchService.askQuestion(question, documentId);
       setAnswer(resp);
+      addToast({ type: 'success', message: 'AI responded with an answer and citations.' });
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Failed to get answer');
+      addToast({ type: 'error', message: 'AI response failed. Please try again.' });
     } finally {
       setLoading(false);
     }

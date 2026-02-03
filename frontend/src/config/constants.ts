@@ -42,6 +42,7 @@ export const ROUTES = {
   SEARCH: '/search',
   CHAT: '/chat',
   ANALYTICS: '/analytics',
+  PROFILE: '/profile',
   ADMIN: '/admin',
   ADMIN_USERS: '/admin/users',
   ADMIN_SYSTEM: '/admin/system',
