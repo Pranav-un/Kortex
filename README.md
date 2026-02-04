@@ -27,7 +27,6 @@
 - Spring Boot (Java 21)
 - Qdrant vector database
 - Groq API for AI processing
-- HuggingFace for embeddings
 
 ## Getting Started
 
@@ -49,7 +48,6 @@ docker run --name kortex-qdrant -p 6334:6334 -v "$(pwd)/qdrant-data:/qdrant/stor
 Windows (PowerShell):
 ```powershell
 $env:GROQ_API_KEY="your_groq_api_key"
-$env:HUGGINGFACE_API_TOKEN="your_hf_token"
 $env:QDRANT_HOST="localhost"
 $env:QDRANT_PORT="6334"
 ```
@@ -57,7 +55,6 @@ $env:QDRANT_PORT="6334"
 Linux/macOS:
 ```bash
 export GROQ_API_KEY="your_groq_api_key"
-export HUGGINGFACE_API_TOKEN="your_hf_token"
 export QDRANT_HOST="localhost"
 export QDRANT_PORT="6334"
 ```
@@ -93,3 +90,4 @@ kortex/
 ## License
 
 Proprietary - College Project. Do not distribute without permission.
+
